@@ -12,7 +12,6 @@ import { QuestSystem } from '../systems/QuestSystem.js';
 import { FishEncyclopedia } from '../systems/FishEncyclopedia.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { PerformanceMonitor } from '../systems/PerformanceMonitor.js';
-import { SpritePool } from '../systems/PerformanceMonitor.js';
 import { ObjectPool, ParticlePool } from '../systems/ObjectPool.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
@@ -60,36 +59,7 @@ export class FishingScene extends Phaser.Scene {
   constructor() {
     super({ key: 'FishingScene' });
     
-    // DEBUG-PRO: Performance profiling
-    this.performanceMetrics = {
-      frameCount: 0,
-      lastProfileTime: 0,
-      profileInterval: 5000,
-      memorySnapshots: [],
-      errorCount: 0,
-      warningCount: 0
-    };
-    
-    // Error boundary - increased threshold for production
-    this.errorBoundary = {
-      maxErrors: 50,
-      recoveryAttempts: 0,
-      lastError: null,
-      recoveryEnabled: true
-    };
-    
-    // Logging
-    this.logger = {
-      level: 'info', // debug, info, warn, error
-      buffer: [],
-      maxBuffer: 100
-    };
-    
-    // Memory leak detection
-    this.memoryWatch = {
-      trackedObjects: new Map(),
-      leakThreshold: 50
-    };
+    // Systems will be initialized in create()
   }
 
   /**
@@ -120,61 +90,27 @@ export class FishingScene extends Phaser.Scene {
   }
 
   /**
-   * DEBUG-PRO: Comprehensive logging system
+   * Simple logging helper
    */
   log(level, message, data = null) {
-    const entry = {
-      timestamp: Date.now(),
-      level,
-      message,
-      data,
-      frame: this.performanceMetrics.frameCount
-    };
-    
-    this.logger.buffer.push(entry);
-    if (this.logger.buffer.length > this.logger.maxBuffer) {
-      this.logger.buffer.shift();
+    const prefix = `[${level.toUpperCase()}]`;
+    if (data) {
+      console.log(prefix, message, data);
+    } else {
+      console.log(prefix, message);
     }
-    
-    if (this.shouldLog(level)) {
-      const prefix = `[${level.toUpperCase()}]`;
-      if (data) {
-        console.log(prefix, message, data);
-      } else {
-        console.log(prefix, message);
-      }
-    }
-  }
-
-  shouldLog(level) {
-    const levels = { debug: 0, info: 1, warn: 2, error: 3 };
-    return levels[level] >= levels[this.logger.level];
   }
 
   /**
-   * DEBUG-PRO: Error handling with recovery
+   * Error handling with recovery
    */
   handleError(context, error) {
-    this.performanceMetrics.errorCount++;
-    this.errorBoundary.lastError = { context, error: error.message, stack: error.stack, time: Date.now() };
-    
     this.log('error', `[FishingScene] Error in ${context}:`, error.message);
-    this.log('error', `[FishingScene] Stack trace:`, error.stack);
-    
-    if (this.performanceMetrics.errorCount > this.errorBoundary.maxErrors) {
-      this.log('error', '[FishingScene] Too many errors, attempting recovery...');
-      this.attemptRecovery();
-    }
-    
-    // Emit error event for UI
     this.events.emit('showMessage', `Error: ${error.message}`);
   }
 
   attemptRecovery() {
-    this.errorBoundary.recoveryAttempts++;
-    
     try {
-      // Cleanup and reinitialize critical systems
       this.cleanupFishing();
       this.fishingSystem = new FishingSystem(this);
       this.log('info', '[FishingScene] Recovery successful');
@@ -184,29 +120,6 @@ export class FishingScene extends Phaser.Scene {
       this.events.emit('showMessage', 'Critical error - please reload');
     }
   }
-
-  /**
-   * DEBUG-PRO: Memory leak detection
-   */
-  trackObject(id, obj, type) {
-    this.memoryWatch.trackedObjects.set(id, {
-      obj,
-      type,
-      created: Date.now(),
-      stack: new Error().stack
-    });
-  }
-
-  untrackObject(id) {
-    this.memoryWatch.trackedObjects.delete(id);
-  }
-
-  checkMemoryLeaks() {
-    const now = Date.now();
-    const leaks = [];
-    
-    this.memoryWatch.trackedObjects.forEach((data, id) => {
-      const age = now - data.created;
       if (age > 60000) { // Older than 1 minute
         leaks.push({ id, age, type: data.type });
       }

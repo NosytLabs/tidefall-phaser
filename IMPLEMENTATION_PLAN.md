@@ -1,19 +1,48 @@
-# Implementation Plan - Tidefall Visual Polish
+# Tidefall Phaser - Ralph Mode Implementation Plan
+
+## Objective
+Implement all critical fixes from technical audit using Ralph Mode autonomous development
+
+## Backpressure Gates
+- Build: `npm run build` must pass
+- Dev server: `npm run dev` must start without errors
+- Game test: Browser must load game without console errors
 
 ## In Progress
-- [x] Viewport 640×400 ✅
-- [x] Complete FishingScene rewrite ✅
-- [x] Zone layout: forest 50, grass 200, beach 25, ocean 125 ✅
-
-## Backlog
-- [ ] Add trees behind NPCs (depth + occlusion)
-- [ ] Better beach texture (zigzag pattern from tileset)
-- [ ] Remove mystery white blobs (position chickens properly or hide)
-- [ ] Fix top edge artifacts
-- [ ] Boat bobbing animation (gentle)
-- [ ] More grass variety on grass zone
-- [ ] Add path to dock connection
 
 ## Completed
-- [x] v31 Proportion fix (v31)
-- [x] Full world rebuild (v32)
+
+## Backlog - Phase 1: Critical Fixes (Low Risk)
+- [ ] Fix SpritePool import in FishingScene.js
+- [ ] Remove dead code (DEBUG-PRO logging, unused performanceMetrics)
+- [ ] Create TextureValidator utility for duplicate texture validation
+- [ ] Fix duplicate PerformanceMonitor import
+- [ ] Create backup branch before major changes
+
+## Backlog - Phase 2: Architecture (Medium Risk)
+- [ ] Extract WorldManager from FishingScene.js
+- [ ] Extract UIManager from FishingScene.js
+- [ ] Extract InputManager from FishingScene.js
+- [ ] Extract FishingController from FishingScene.js
+
+## Backlog - Phase 3: TypeScript (High Risk)
+- [ ] Add TypeScript configuration (tsconfig.json)
+- [ ] Install TypeScript dependencies
+- [ ] Migrate core files to TypeScript (incremental)
+
+## Backlog - Phase 4: Features (Variable Risk)
+- [ ] Implement FarmScene.js
+- [ ] Implement DiveScene.js
+- [ ] Implement MineScene.js
+- [ ] Add service worker for offline play
+- [ ] Implement responsive layout system
+
+## Risk Assessment
+- Phase 1: Low risk - safe to implement immediately
+- Phase 2: Medium risk - requires testing after each extraction
+- Phase 3: High risk - may break compilation, needs careful migration
+- Phase 4: Variable risk - scope could expand significantly
+
+## Stopping Conditions
+- Max iterations: 20
+- Stop if: Game becomes unplayable, build fails, or manual intervention requested
