@@ -399,6 +399,21 @@ export class PlayerAnalytics {
   }
 
   /**
+   * Update stats (called from update loop)
+   */
+  updateStats(type, data) {
+    switch (type) {
+      case 'play_time':
+        // Track play time for analytics
+        this.sessionData.playTime = (this.sessionData.playTime || 0) + (data.delta || 0);
+        break;
+      default:
+        // Ignore unknown stat types
+        break;
+    }
+  }
+
+  /**
    * Get difficulty modifier for adaptive difficulty
    */
   getDifficultyModifier() {

@@ -66,6 +66,10 @@ export class FishManager {
    */
   spawnShadow() {
     const bounds = this.scene.waterBounds;
+    if (!bounds) {
+      console.warn('[FishManager] waterBounds not set, skipping shadow spawn');
+      return null;
+    }
     const x = Phaser.Math.Between(bounds.left + 20, bounds.right - 20);
     const y = Phaser.Math.Between(bounds.top + 20, bounds.bottom - 20);
 
