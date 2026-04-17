@@ -23,6 +23,7 @@ import { FarmScene } from './scenes/FarmScene.js';
 import { DiveScene } from './scenes/DiveScene.js';
 import { MineScene } from './scenes/MineScene.js';
 import { GAME } from './core/Constants.js';
+import { ErrorBoundary } from './core/ErrorBoundary.js';
 
 /**
  * Tidefall - Optimized Phaser 3 Pixel Art Fishing RPG
@@ -88,6 +89,10 @@ if (loadingDiv) loadingDiv.style.display = 'none';
 
 // Expose for debugging
 window.__game = game;
+
+// Initialize error boundary
+const errorBoundary = new ErrorBoundary(game);
+window.__errorBoundary = errorBoundary;
 
 // Handle tab visibility (pause when hidden, resume when visible)
 document.addEventListener('visibilitychange', () => {
