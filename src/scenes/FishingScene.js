@@ -100,6 +100,7 @@ export class FishingScene extends Phaser.Scene {
     try {
       this.initializeSystems();
       this.createWorld();
+      this.fishManager.spawnFishShadows();
       this.setupEnhancedInput();
       this.setupEventHandlers();
       this.setupDayNightCycle();
@@ -265,9 +266,6 @@ export class FishingScene extends Phaser.Scene {
     this.npcs = [];
     this.npcGroup = this.add.group();
     this.spawnNPCs();
-    
-    // Fish shadows
-    this.fishManager.spawnFishShadows();
     
     // Setup camera, input, physics
     this.setupCamera();
