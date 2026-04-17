@@ -1272,6 +1272,11 @@ export class FishingScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // Guard against update running before create completes
+    if (!this.player || !this.cursors) {
+      return;
+    }
+    
     // DEBUG-PRO: Performance profiling
     this.performanceMetrics.frameCount++;
     if (time - this.performanceMetrics.lastProfileTime > this.performanceMetrics.profileInterval) {
@@ -1285,7 +1290,7 @@ export class FishingScene extends Phaser.Scene {
 
     // Update entities
     this.player.update(delta);
-    this.npcs.forEach(npc => npc.update(this.player.x, this.player.y));
+    this.npcs?.forEach(npc => npc.update(this.player.x, this.player.y));
     this.updateAnimals(delta);
 
     // Update systems
@@ -1337,6 +1342,9 @@ export class FishingScene extends Phaser.Scene {
   }
 
   updateAnimals(delta) {
+    if (!this.animals || !Array.isArray(this.animals)) {
+      return;
+    }
     this.animals.forEach(animal => {
       const s = animal.sprite;
       animal.stateTimer -= delta;
