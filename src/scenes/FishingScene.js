@@ -154,9 +154,10 @@ export class FishingScene extends Phaser.Scene {
    */
   handleError(context, error) {
     this.performanceMetrics.errorCount++;
-    this.errorBoundary.lastError = { context, error: error.message, time: Date.now() };
+    this.errorBoundary.lastError = { context, error: error.message, stack: error.stack, time: Date.now() };
     
     this.log('error', `[FishingScene] Error in ${context}:`, error.message);
+    this.log('error', `[FishingScene] Stack trace:`, error.stack);
     
     if (this.performanceMetrics.errorCount > this.errorBoundary.maxErrors) {
       this.log('error', '[FishingScene] Too many errors, attempting recovery...');
