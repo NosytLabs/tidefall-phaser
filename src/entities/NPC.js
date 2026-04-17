@@ -151,7 +151,7 @@ export class NPC {
     }
 
     // Only update if texture changed
-    if (sprite.texture.key !== targetKey) {
+    if (!sprite.texture || sprite.texture.key !== targetKey) {
       const currentFrame = sprite.frame ? sprite.frame.name : 0;
       sprite.setTexture(targetKey);
       sprite.setVisible(this.scene.textures.exists(targetKey));
@@ -250,10 +250,10 @@ export class NPC {
     }
 
     // Ensure clothing layers use correct textures (walk as fallback for idle)
-    // and are visible
-    this._setLayer(this.pantsSprite, 'pants', this.pantsColor);
-    this._setLayer(this.shirtSprite, 'shirt', this.shirtColor);
-    this._setLayer(this.hairSprite, 'hair', `${this.hairStyle}_${this.hairColor}`);
+    // and are visible - only if sprites exist
+    if (this.pantsSprite) this._setLayer(this.pantsSprite, 'pants', this.pantsColor);
+    if (this.shirtSprite) this._setLayer(this.shirtSprite, 'shirt', this.shirtColor);
+    if (this.hairSprite) this._setLayer(this.hairSprite, 'hair', `${this.hairStyle}_${this.hairColor}`);
 
     // Sync frame positions
     this.syncLayers();
