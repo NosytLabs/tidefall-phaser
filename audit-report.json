@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-04-17T15:33:07.734Z",
+  "gameState": {
+    "hasGame": true,
+    "fps": 22.66796875,
+    "scenes": [
+      "BootScene",
+      "FishingScene",
+      "UIScene",
+      "FarmScene",
+      "DiveScene",
+      "MineScene"
+    ],
+    "currentScene": "FishingScene"
+  },
+  "summary": {
+    "totalLogs": 32,
+    "errors": 0,
+    "warnings": 17,
+    "missingTextures": 12,
+    "fpsDrops": 1
+  },
+  "errors": [],
+  "criticalLogs": []
+}

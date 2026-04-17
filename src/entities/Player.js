@@ -183,14 +183,17 @@ export class Player {
     this.idleHairSprite = this._getLayerSprite(`idle_hair_${this.hairStyle}_${this.hairColor}`, origin, spriteScale);
     
     // Hide idle variants initially (not added to container)
-    this.idlePantsSprite.setVisible(false);
-    this.idleShirtSprite.setVisible(false);
-    this.idleHairSprite.setVisible(false);
+    if (this.idlePantsSprite) this.idlePantsSprite.setVisible(false);
+    if (this.idleShirtSprite) this.idleShirtSprite.setVisible(false);
+    if (this.idleHairSprite) this.idleHairSprite.setVisible(false);
     
-    // Hide missing layers
-    this._validateLayers();
+    // Build container children array, filtering out null sprites
+    const containerChildren = [shadow, this.bodySprite];
+    if (this.pantsSprite) containerChildren.push(this.pantsSprite);
+    if (this.shirtSprite) containerChildren.push(this.shirtSprite);
+    if (this.hairSprite) containerChildren.push(this.hairSprite);
     
-    this.container.add([shadow, this.bodySprite, this.pantsSprite, this.shirtSprite, this.hairSprite]);
+    this.container.add(containerChildren);
     
     // Physics
     scene.physics.world.enable(this.container);
@@ -241,6 +244,11 @@ export class Player {
    * @private
    */
   _getLayerSprite(key, origin, scale) {
+    // Check if texture exists before creating sprite
+    if (!this.scene.textures.exists(key)) {
+      return null; // Return null instead of creating invisible sprite
+    }
+    
     if (this.scene.spritePool?.acquire) {
       return this.scene.spritePool.acquire(0, 0, { texture: key });
     }
@@ -265,7 +273,7 @@ export class Player {
   _validateLayers() {
     [this.pantsSprite, this.shirtSprite, this.hairSprite,
      this.idlePantsSprite, this.idleShirtSprite, this.idleHairSprite].forEach(s => {
-      if (!this._textureExists(s.texture.key)) {
+      if (s && !this._textureExists(s.texture.key)) {
         s.setVisible(false);
       }
     });
@@ -519,24 +527,26 @@ export class Player {
    * Hide all clothing layers (for special animations)
    */
   hideClothingLayers() {
-    this.pantsSprite.setVisible(false);
-    this.shirtSprite.setVisible(false);
-    this.hairSprite.setVisible(false);
+    if (this.pantsSprite) this.pantsSprite.setVisible(false);
+    if (this.shirtSprite) this.shirtSprite.setVisible(false);
+    if (this.hairSprite) this.hairSprite.setVisible(false);
   }
   
   /**
    * Restore clothing layers (if textures exist)
    */
   restoreClothingLayers() {
-    this._setLayer(this.pantsSprite, `walk_pants_${this.pantsColor}`);
-    this._setLayer(this.shirtSprite, `walk_shirt_${this.shirtColor}`);
-    this._setLayer(this.hairSprite, `walk_hair_${this.hairStyle}_${this.hairColor}`);
+    if (this.pantsSprite) this._setLayer(this.pantsSprite, `walk_pants_${this.pantsColor}`);
+    if (this.shirtSprite) this._setLayer(this.shirtSprite, `walk_shirt_${this.shirtColor}`);
+    if (this.hairSprite) this._setLayer(this.hairSprite, `walk_hair_${this.hairStyle}_${this.hairColor}`);
     
     // Mark for sync
     this._layerSyncDirty = true;
   }
 
   _setLayer(sprite, key) {
+    if (!sprite) return; // Guard against null sprites
+    
     if (this._textureExists(key)) {
       // Only update if different texture
       if (sprite.texture.key !== key) {

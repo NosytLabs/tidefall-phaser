@@ -44,16 +44,18 @@ export class NPC {
     this.bodySprite = scene.add.sprite(0, 0, `${bodyBase}_body_${this.skinTone}`).setOrigin(...origin).setScale(spriteScale);
 
     // Create clothing sprites with fallback from idle to walk
-    this.pantsSprite = this._createClothingSprite(scene, 'pants', this.pantsColor, origin, spriteScale);
-    this.shirtSprite = this._createClothingSprite(scene, 'shirt', this.shirtColor, origin, spriteScale);
-    this.hairSprite = this._createClothingSprite(scene, 'hair', `${this.hairStyle}_${this.hairColor}`, origin, spriteScale);
+    // Only create sprites if textures exist to avoid invisible placeholder sprites
+    this.pantsSprite = this._createClothingSpriteSafe(scene, 'pants', this.pantsColor, origin, spriteScale);
+    this.shirtSprite = this._createClothingSpriteSafe(scene, 'shirt', this.shirtColor, origin, spriteScale);
+    this.hairSprite = this._createClothingSpriteSafe(scene, 'hair', `${this.hairStyle}_${this.hairColor}`, origin, spriteScale);
 
-    // Hide missing layers
-    [this.pantsSprite, this.shirtSprite, this.hairSprite].forEach(s => {
-      if (!scene.textures.exists(s.texture.key)) s.setVisible(false);
-    });
-
-    this.container.add([shadow, this.bodySprite, this.pantsSprite, this.shirtSprite, this.hairSprite]);
+    // Build container children array, filtering out null sprites
+    const containerChildren = [shadow, this.bodySprite];
+    if (this.pantsSprite) containerChildren.push(this.pantsSprite);
+    if (this.shirtSprite) containerChildren.push(this.shirtSprite);
+    if (this.hairSprite) containerChildren.push(this.hairSprite);
+    
+    this.container.add(containerChildren);
     this.container.setDepth(10);
 
     // Idle by default
@@ -86,28 +88,44 @@ export class NPC {
 
   /**
    * Create a clothing sprite with idle -> walk fallback
+   * SAFE version: returns null if no valid texture exists
    */
-  _createClothingSprite(scene, type, colorOrStyle, origin, scale) {
+  _createClothingSpriteSafe(scene, type, colorOrStyle, origin, scale) {
     const idleKey = `idle_${type}_${colorOrStyle}`;
     const walkKey = `walk_${type}_${colorOrStyle}`;
 
-    // Check if idle texture exists and is valid (not empty/transparent)
-    let useIdle = false;
+    // Check if idle texture exists and is valid
     if (scene.textures.exists(idleKey)) {
       const idleTexture = scene.textures.get(idleKey);
-      // Check if texture has valid frames and content
       if (idleTexture && idleTexture.frameTotal > 0) {
         const source = idleTexture.getSourceImage();
-        // If source exists and has dimensions, check if it has content
         if (source && source.width > 0 && source.height > 0) {
-          useIdle = true;
+          return scene.add.sprite(0, 0, idleKey).setOrigin(...origin).setScale(scale);
         }
       }
     }
 
-    // Use idle if available, otherwise fall back to walk
-    const textureKey = useIdle ? idleKey : walkKey;
-    return scene.add.sprite(0, 0, textureKey).setOrigin(...origin).setScale(scale);
+    // Fall back to walk texture
+    if (scene.textures.exists(walkKey)) {
+      const walkTexture = scene.textures.get(walkKey);
+      if (walkTexture && walkTexture.frameTotal > 0) {
+        const source = walkTexture.getSourceImage();
+        if (source && source.width > 0 && source.height > 0) {
+          return scene.add.sprite(0, 0, walkKey).setOrigin(...origin).setScale(scale);
+        }
+      }
+    }
+
+    // No valid texture found - return null instead of creating invisible sprite
+    return null;
+  }
+
+  /**
+   * Create a clothing sprite with idle -> walk fallback
+   * @deprecated Use _createClothingSpriteSafe instead
+   */
+  _createClothingSprite(scene, type, colorOrStyle, origin, scale) {
+    return this._createClothingSpriteSafe(scene, type, colorOrStyle, origin, scale);
   }
 
   /**

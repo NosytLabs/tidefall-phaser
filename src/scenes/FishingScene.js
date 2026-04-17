@@ -334,9 +334,14 @@ export class FishingScene extends Phaser.Scene {
     ];
     pineSpots.forEach((x, i) => {
       if (this.textures.exists('trees_pine_growth')) {
+        const texture = this.textures.get('trees_pine_growth');
+        const frameCount = texture.frameTotal;
+        // Use frame 0 if frame 7 doesn't exist, otherwise use frame 7
+        const frameIndex = frameCount > 7 ? 7 : 0;
+        
         const scale = 1.0 + (i % 3) * 0.15;
         const yPos = GRASS_TOP + 150 + ((i * 37) % 120);
-        const pine = this.add.sprite(x, yPos, 'trees_pine_growth', 7)
+        const pine = this.add.sprite(x, yPos, 'trees_pine_growth', frameIndex)
           .setOrigin(0.5, 1).setDepth(-1).setScale(scale).setAlpha(0.6);
         this.treeGroup.add(pine);
       }
