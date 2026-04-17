@@ -1,0 +1,26 @@
+{
+  "name": "Tidefall - Pixel Art Fishing RPG",
+  "short_name": "Tidefall",
+  "description": "A cozy 2D pixel art fishing RPG with 44 fish species, day/night cycle, and village building.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

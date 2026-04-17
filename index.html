@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tidefall - Pixel Art Fishing RPG</title>
+  <meta name="description" content="Tidefall is a cozy 2D pixel art fishing RPG. Cast your line, catch 44 species of fish, and build your fishing village.">
+  <meta name="keywords" content="fishing game, pixel art, RPG, Phaser, indie game, browser game">
+  <meta name="author" content="Nosyt Labs">
+  <meta name="theme-color" content="#1a1a2e">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Tidefall - Pixel Art Fishing RPG">
+  <meta property="og:description" content="A cozy 2D pixel art fishing RPG with 44 fish species, day/night cycle, and village building.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/favicon.svg">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tidefall - Pixel Art Fishing RPG">
+  <meta name="twitter:description" content="A cozy 2D pixel art fishing RPG.">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+      background: #1a1a2e; 
+      font-family: monospace;
+    }
+    body { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+    }
+    #game-container {
+      width: 100%;
+      height: 100%;
+    }
+    #game-container canvas { 
+      image-rendering: pixelated; 
+      image-rendering: crisp-edges; 
+      display: block;
+    }
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #88ccff;
+      font-family: monospace;
+      font-size: 16px;
+      text-align: center;
+    }
+    #loading .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #333;
+      border-top-color: #88ccff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <div id="loading">
+    <div class="spinner"></div>
+    Loading Tidefall...
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
