@@ -1,179 +1,248 @@
 import Phaser from 'phaser';
+import { eventBus } from '../core/EventBus.js';
+import { gameState } from '../core/GameState.js';
+import { EVENTS, GAME } from '../core/Constants.js';
 
 /**
- * MineScene - Mining for ores and gems
+ * MineScene - Mining gameplay scene
  * 
- * Uses Smallburg Mine Pack assets:
- * - Mining character animations
- * - Ores (crystals, gems, ores)
- * - Mine carts
- * - Cave walls and floors
- * - Critters
+ * Features:
+ * - Cave exploration
+ * - Ore mining
+ * - Tool upgrades
+ * - Light management
+ * - Hazards and dangers
  */
 export class MineScene extends Phaser.Scene {
   constructor() {
     super({ key: 'MineScene' });
+    
+    this.miner = null;
+    this.lightRadius = 150;
+    this.ores = [];
+    this.hazards = [];
   }
 
   create() {
-    const { width, height } = this.scale;
-
-    // Cave background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x2a2a3a);
+    console.log('[MineScene] Creating mine...');
     
-    // Cave walls (border)
-    this.add.rectangle(width / 2, 8, width, 16, 0x4a4a5a);
-    this.add.rectangle(width / 2, height - 8, width, 16, 0x4a4a5a);
-    this.add.rectangle(8, height / 2, 16, height, 0x4a4a5a);
-    this.add.rectangle(width - 8, height / 2, 16, height, 0x4a4a5a);
+    // Create cave environment
+    this.createCaveEnvironment();
+    
+    // Create miner
+    this.createMiner();
+    
+    // Create ore deposits
+    this.createOres();
+    
+    // Create hazards
+    this.createHazards();
+    
+    // Setup UI
+    this.createUI();
+    
+    // Setup input
+    this.setupInput();
+    
+    // Emit scene ready
+    this.events.emit('sceneReady', this);
+    console.log('[MineScene] Mine creation complete');
+  }
 
-    // Rock formations
+  createCaveEnvironment() {
+    // Dark cave background
+    const graphics = this.add.graphics();
+    graphics.fillStyle(0x1a1a1a, 1);
+    graphics.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
+    
+    // Cave walls (procedural)
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * GAME.WIDTH;
+      const y = Math.random() * GAME.HEIGHT;
+      const size = 30 + Math.random() * 50;
+      
+      graphics.fillStyle(0x333333, 1);
+      graphics.fillCircle(x, y, size);
+    }
+    
+    // Support beams
+    for (let x = 100; x < GAME.WIDTH; x += 300) {
+      graphics.fillStyle(0x4a3728, 1);
+      graphics.fillRect(x, 0, 20, GAME.HEIGHT);
+    }
+    
+    // Darkness overlay (will be masked by light)
+    this.darkness = this.add.rectangle(
+      GAME.WIDTH / 2, GAME.HEIGHT / 2,
+      GAME.WIDTH, GAME.HEIGHT,
+      0x000000, 0.7
+    );
+  }
+
+  createMiner() {
+    // Create miner sprite
+    this.miner = this.add.sprite(100, GAME.HEIGHT / 2, 'idle_body_light');
+    this.miner.setScale(2);
+    
+    // Miner physics
+    this.physics.add.existing(this.miner);
+    this.miner.body.setCollideWorldBounds(true);
+    this.miner.body.setDrag(200);
+  }
+
+  createOres() {
+    // Create ore deposits
+    const oreTypes = [
+      { color: 0xC0C0C0, value: 10, name: 'Silver' },
+      { color: 0xFFD700, value: 25, name: 'Gold' },
+      { color: 0xB87333, value: 5, name: 'Copper' },
+      { color: 0xFF0000, value: 50, name: 'Ruby' },
+      { color: 0x00FF00, value: 40, name: 'Emerald' }
+    ];
+    
     for (let i = 0; i < 20; i++) {
-      const rock = this.add.rectangle(
-        Phaser.Math.Between(30, width - 30),
-        Phaser.Math.Between(30, height - 30),
-        Phaser.Math.Between(16, 40),
-        Phaser.Math.Between(16, 32),
-        0x3a3a4a, 0.8
-      );
-      rock.setStrokeStyle(2, 0x2a2a3a);
-      rock.setDepth(1);
+      const type = oreTypes[Math.floor(Math.random() * oreTypes.length)];
+      const x = 200 + Math.random() * (GAME.WIDTH - 400);
+      const y = 100 + Math.random() * (GAME.HEIGHT - 200);
+      
+      const ore = this.add.circle(x, y, 15, type.color);
+      
+      this.ores.push({
+        sprite: ore,
+        type: type,
+        mined: false
+      });
     }
+  }
 
-    // Mineable ore nodes
-    this.oreNodes = [];
-    this.spawnOreNodes();
+  createHazards() {
+    // Create falling rocks hazard
+    this.time.addEvent({
+      delay: 3000,
+      callback: () => {
+        this.spawnFallingRock();
+      },
+      callbackScope: this,
+      loop: true
+    });
+  }
 
-    // Player (miner) - use existing player sprite or fallback
-    const minerTexture = this.textures.exists('idle_body_light') ? 'idle_body_light' : null;
-    if (minerTexture) {
-      this.miner = this.physics.add.sprite(width / 2, height / 2, minerTexture);
-      this.miner.setScale(0.5);
-    } else {
-      this.miner = this.add.rectangle(width / 2, height / 2, 20, 20, 0xffaa44);
-      this.physics.add.existing(this.miner);
-    }
-    this.miner.setCollideWorldBounds(true);
-    this.miner.setDepth(10);
-    this.miner.setTint(0xffaa44);
+  spawnFallingRock() {
+    const x = 200 + Math.random() * (GAME.WIDTH - 400);
+    const rock = this.add.circle(x, -20, 20, 0x666666);
+    
+    this.physics.add.existing(rock);
+    rock.body.setVelocityY(200);
+    
+    // Remove rock after it falls
+    this.time.delayedCall(3000, () => {
+      rock.destroy();
+    });
+  }
 
-    // Energy for mining
-    this.mineEnergy = 50;
+  createUI() {
+    // Light radius indicator
+    this.lightText = this.add.text(20, 20, 'Light: 100%', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#ffff00'
+    });
+    
+    // Instructions
+    this.add.text(20, GAME.HEIGHT - 50, 'WASD: Move | SPACE: Mine | M: Exit Mine', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#ffffff'
+    });
+  }
 
-    // Input
+  setupInput() {
+    // Movement
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
       left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
+      right: Phaser.Input.Keyboard.KeyCodes.D
     });
-    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
-    this.spaceKey.on('down', () => this.tryMine());
-
-    // Return button
-    const returnBtn = this.add.text(width - 60, 10, '← Back', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#ffffff',
-      backgroundColor: '#333333', padding: { x: 8, y: 4 },
-    }).setInteractive({ useHandCursor: true }).setDepth(100);
     
-    returnBtn.on('pointerdown', () => {
+    // Mine ore
+    this.input.keyboard.on('keydown-SPACE', () => {
+      this.tryMineOre();
+    });
+    
+    // Exit mine
+    this.input.keyboard.on('keydown-M', () => {
       this.scene.switch('FishingScene');
     });
-
-    // Title
-    this.add.text(width / 2, 15, '⛏️ MINE', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#ffffff',
-      stroke: '#000000', strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(100);
-
-    // Energy bar
-    this.energyText = this.add.text(10, height - 15, '⚡ 50/50', {
-      fontFamily: 'monospace', fontSize: '10px', color: '#ffdd44',
-    }).setDepth(100);
-  }
-
-  spawnOreNodes() {
-    const oreTypes = [
-      { type: 'coal', color: 0x333333, hardness: 3, value: 10, name: 'Coal' },
-      { type: 'iron', color: 0x888888, hardness: 5, value: 25, name: 'Iron' },
-      { type: 'gold', color: 0xffdd44, hardness: 7, value: 50, name: 'Gold' },
-      { type: 'crystal', color: 0x44aaff, hardness: 8, value: 75, name: 'Crystal' },
-      { type: 'ruby', color: 0xff4444, hardness: 10, value: 100, name: 'Ruby' },
-      { type: 'diamond', color: 0xffffff, hardness: 12, value: 200, name: 'Diamond' },
-    ];
-
-    for (let i = 0; i < 10; i++) {
-      const ore = Phaser.Math.RND.weightedPick(oreTypes.map(o => ({ ...o, weight: o.hardness })));
-      const node = this.add.rectangle(
-        Phaser.Math.Between(40, this.scale.width - 40),
-        Phaser.Math.Between(40, this.scale.height - 40),
-        20, 18, ore.color
-      );
-      node.setStrokeStyle(2, 0xffffff, 0.3);
-      node.setDepth(2);
-
-      this.oreNodes.push({
-        sprite: node,
-        type: ore,
-        hits: 0,
-        maxHits: ore.hardness,
-        depleted: false,
-      });
-    }
-  }
-
-  tryMine() {
-    if (this.mineEnergy <= 0) return;
-
-    // Find nearby ore
-    const nearby = this.oreNodes.find(n => {
-      if (n.depleted) return false;
-      const dist = Phaser.Math.Distance.Between(
-        this.miner.x, this.miner.y, n.sprite.x, n.sprite.y
-      );
-      return dist < 30;
+    
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.scene.switch('FishingScene');
     });
-
-    if (nearby) {
-      nearby.hits++;
-      this.mineEnergy--;
-      
-      // Shake effect
-      this.tweens.add({
-        targets: nearby.sprite,
-        x: nearby.sprite.x + Phaser.Math.Between(-3, 3),
-        duration: 50,
-        yoyo: true,
-      });
-
-      if (nearby.hits >= nearby.maxHits) {
-        nearby.depleted = true;
-        nearby.sprite.destroy();
-        
-        // Notify main scene
-        this.scene.get('FishingScene').events.emit('showMessage', 
-          `⛏️ Mined ${nearby.type.name}! (+${nearby.type.value}g)`);
-        this.scene.get('FishingScene').shopSystem.gold += nearby.type.value;
-      }
-    }
   }
 
-  update(time, delta) {
-    const speed = 80;
-    let vx = 0, vy = 0;
+  tryMineOre() {
+    const minerX = this.miner.x;
+    const minerY = this.miner.y;
     
-    if (this.cursors.left.isDown || this.wasd.left.isDown) vx = -speed;
-    else if (this.cursors.right.isDown || this.wasd.right.isDown) vx = speed;
-    if (this.cursors.up.isDown || this.wasd.up.isDown) vy = -speed;
-    else if (this.cursors.down.isDown || this.wasd.down.isDown) vy = speed;
-    
-    if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707; }
-    
-    this.miner.setVelocity(vx, vy);
+    this.ores.forEach(ore => {
+      if (!ore.mined) {
+        const dist = Phaser.Math.Distance.Between(
+          minerX, minerY,
+          ore.sprite.x, ore.sprite.y
+        );
+        
+        if (dist < 60) {
+          ore.mined = true;
+          ore.sprite.setVisible(false);
+          
+          // Add value to game state
+          gameState.game.gold += ore.type.value;
+          
+          // Show notification
+          eventBus.emit(EVENTS.UI_SHOW_MESSAGE, `Mined ${ore.type.name}! +${ore.type.value} gold`);
+        }
+      }
+    });
+  }
 
-    // Update energy display
-    this.energyText.setText(`⚡ ${this.mineEnergy}/50`);
+  update() {
+    // Update miner movement
+    const speed = 150;
+    
+    if (this.cursors.left.isDown || this.wasd.left.isDown) {
+      this.miner.body.setVelocityX(-speed);
+    } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+      this.miner.body.setVelocityX(speed);
+    } else {
+      this.miner.body.setVelocityX(0);
+    }
+    
+    if (this.cursors.up.isDown || this.wasd.up.isDown) {
+      this.miner.body.setVelocityY(-speed);
+    } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
+      this.miner.body.setVelocityY(speed);
+    } else {
+      this.miner.body.setVelocityY(0);
+    }
+    
+    // Update darkness/lighting effect
+    this.updateLighting();
+  }
+
+  updateLighting() {
+    // Create light around miner
+    const graphics = this.add.graphics();
+    graphics.clear();
+    
+    // Dark everywhere except around miner
+    graphics.fillStyle(0x000000, 0.8);
+    graphics.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
+    
+    // Light circle around miner
+    graphics.fillStyle(0x000000, 0);
+    graphics.fillCircle(this.miner.x, this.miner.y, this.lightRadius);
   }
 }
+
+export default MineScene;
