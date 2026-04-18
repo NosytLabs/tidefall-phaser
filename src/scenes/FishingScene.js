@@ -413,10 +413,12 @@ export class FishingScene extends Phaser.Scene {
     canvas.height = forestBottom;
     const ctx = canvas.getContext('2d');
     
+    // Enhanced sky gradient - more vibrant colors
     const gradient = ctx.createLinearGradient(0, 0, 0, forestBottom);
-    gradient.addColorStop(0, '#1a3d12');
-    gradient.addColorStop(0.5, '#0d2808');
-    gradient.addColorStop(1, '#1a3d12');
+    gradient.addColorStop(0, '#1e3c72');    // Deep blue
+    gradient.addColorStop(0.4, '#2a5298');  // Medium blue
+    gradient.addColorStop(0.7, '#7e8ba3');  // Gray-blue
+    gradient.addColorStop(1, '#a8b5c4');    // Light gray
     
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1, forestBottom);
