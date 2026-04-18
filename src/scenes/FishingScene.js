@@ -433,27 +433,31 @@ export class FishingScene extends Phaser.Scene {
   }
 
   createClouds(W, skyHeight) {
-    // MASSIVE cloud system - 15 clouds for expansive sky
-    const cloudYPositions = [30, 60, 45, 80, 25, 55, 70, 40, 90, 20, 65, 50, 85, 35, 75];
-    const cloudSpeeds = [0.02, 0.03, 0.015, 0.025, 0.02, 0.018, 0.022, 0.028, 0.016, 0.024, 0.02, 0.03, 0.015, 0.025, 0.02];
-    
+    // ENHANCED cloud system - 20 clouds with better variety
+    const cloudCount = 20;
     this.clouds = [];
     
-    cloudYPositions.forEach((y, i) => {
-      const x = (i * 250) % W;
-      const speed = cloudSpeeds[i];
+    for (let i = 0; i < cloudCount; i++) {
+      const x = (i * 150) % (W + 200) - 100;
+      const y = 20 + (i * 15) % 100;
+      const speed = 0.01 + (i % 5) * 0.005;
+      const scale = 0.8 + (i % 4) * 0.3;
+      const alpha = 0.15 + (i % 3) * 0.1;
       
       let cloud;
       if (this.textures.exists('cloud')) {
-        cloud = this.add.sprite(x, y, 'cloud', 0)
+        cloud = this.add.sprite(x, y, 'cloud', i % 4)
           .setDepth(0)
-          .setAlpha(0.4)
-          .setScale(1.0 + Math.random() * 0.6);
+          .setAlpha(alpha)
+          .setScale(scale);
         if (this.anims.exists('cloud_float')) {
           cloud.play('cloud_float');
         }
       } else {
-        cloud = this.add.ellipse(x, y, 80, 30, 0xffffff, 0.2).setDepth(0);
+        // Create varied cloud shapes
+        const width = 60 + (i % 3) * 30;
+        const height = 25 + (i % 2) * 15;
+        cloud = this.add.ellipse(x, y, width, height, 0xffffff, alpha).setDepth(0);
       }
       
       this.cloudGroup.add(cloud);
@@ -461,9 +465,10 @@ export class FishingScene extends Phaser.Scene {
       this.clouds.push({
         sprite: cloud,
         speed: speed,
-        baseY: y
+        baseY: y,
+        baseX: x
       });
-    });
+    }
   }
 
   createBirds(W, skyHeight) {
@@ -791,6 +796,9 @@ export class FishingScene extends Phaser.Scene {
     
     // Create reflections
     this.createReflections(W, H, waterY);
+    
+    // Initialize weather system
+    this.createWeatherSystem();
   }
 
   createReflections(W, H, waterY) {
@@ -1368,6 +1376,80 @@ export class FishingScene extends Phaser.Scene {
     });
   }
 
+  createWeatherSystem() {
+    // Weather particle system
+    this.weather = {
+      type: 'clear', // clear, rain, snow
+      intensity: 0,
+      particles: []
+    };
+    
+    // Create particle pool for weather
+    this.weatherGraphics = this.add.graphics().setDepth(DEPTH.PARTICLES + 50);
+    
+    // Randomly start rain occasionally
+    this.time.addEvent({
+      delay: 30000, // Check every 30 seconds
+      callback: () => {
+        if (Math.random() < 0.3 && this.weather.type === 'clear') {
+          this.startRain();
+        }
+      },
+      loop: true
+    });
+  }
+  
+  startRain() {
+    this.weather.type = 'rain';
+    this.weather.intensity = 100;
+    
+    // Create rain drops
+    for (let i = 0; i < 100; i++) {
+      this.weather.particles.push({
+        x: Math.random() * this.scale.width,
+        y: Math.random() * -200,
+        speed: 8 + Math.random() * 4,
+        length: 8 + Math.random() * 4
+      });
+    }
+    
+    // Stop rain after random duration
+    this.time.delayedCall(10000 + Math.random() * 20000, () => {
+      this.stopRain();
+    });
+  }
+  
+  stopRain() {
+    this.weather.type = 'clear';
+    this.weather.particles = [];
+    this.weatherGraphics.clear();
+  }
+  
+  updateWeather() {
+    if (this.weather.type === 'rain' && this.weatherGraphics) {
+      this.weatherGraphics.clear();
+      this.weatherGraphics.lineStyle(1, 0xaaaaaa, 0.4);
+      
+      this.weather.particles.forEach(drop => {
+        // Update position
+        drop.y += drop.speed;
+        drop.x -= 0.5; // Slight wind
+        
+        // Reset if off screen
+        if (drop.y > this.scale.height) {
+          drop.y = -20;
+          drop.x = Math.random() * this.scale.width;
+        }
+        
+        // Draw rain drop
+        this.weatherGraphics.beginPath();
+        this.weatherGraphics.moveTo(drop.x, drop.y);
+        this.weatherGraphics.lineTo(drop.x - 0.5, drop.y + drop.length);
+        this.weatherGraphics.strokePath();
+      });
+    }
+  }
+
   createWaterFoam(W, waterY) {
     // Create foam sprites along the water edge
     this.foamSprites = [];
@@ -1385,6 +1467,9 @@ export class FishingScene extends Phaser.Scene {
   }
 
   updateWorldEffects(time, delta) {
+    // Update weather
+    this.updateWeather();
+    
     // Animate foam
     if (this.foamSprites) {
       this.foamSprites.forEach(foam => {

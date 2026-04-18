@@ -32,7 +32,18 @@ Game is functional with:
 - [ ] Sound effects integration
 - [ ] Particle effects for actions
 
-## Current Iteration
-**Iteration 1** - Improve water with animated waves
+## Completed Iterations
+
+### Iteration 1 ✅ - Enhanced Water Effects
 **File:** `src/scenes/FishingScene.js`
+**Status:** Complete - Committed e0e9091
+**Changes:**
+- Added 8 animated wave lines with varying speeds/amplitudes
+- Created water foam sprites along shoreline
+- Enhanced wave rendering with sine wave curves
+- Added foam animation that moves and fades
+
+## Current Iteration
+**Iteration 2** - Add weather particle effects
+**File:** `src/scenes/FishingScene.js` - Weather system
 **Status:** In Progress
