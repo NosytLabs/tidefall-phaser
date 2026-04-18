@@ -37,19 +37,22 @@ export class NPC {
     const origin = [0.5, 0.75];
     const spriteScale = 2.0;
 
-    // Determine base type (idle if exists, otherwise walk)
-    const bodyBase = scene.textures.exists(`idle_body_${this.skinTone}`) ? 'idle' : 'walk';
-
-    // Create body sprite with idle animation if available
-    const bodyKey = `${bodyBase}_body_${this.skinTone}`;
-    const walkBodyKey = `walk_body_${this.skinTone}`;
-    const useBodyKey = scene.textures.exists(bodyKey) ? bodyKey : 
-                       scene.textures.exists(walkBodyKey) ? walkBodyKey : null;
+    // Determine base type (idle if exists and has frames, otherwise walk)
+    const hasValidTexture = (key) => {
+      if (!scene.textures.exists(key)) return false;
+      const tex = scene.textures.get(key);
+      return tex && tex.frameTotal > 0;
+    };
+    
+    const idleKey = `idle_body_${this.skinTone}`;
+    const walkKey = `walk_body_${this.skinTone}`;
+    const useBodyKey = hasValidTexture(idleKey) ? idleKey : 
+                       hasValidTexture(walkKey) ? walkKey : null;
     
     if (!useBodyKey) {
-      console.warn(`[NPC] No body texture found for ${config.name}, using fallback`);
-      // Create a colored rectangle as fallback
-      this.bodySprite = scene.add.rectangle(0, 0, 16, 24, 0xffccaa).setOrigin(...origin);
+      console.warn(`[NPC] No valid body texture for ${config.name} (skin: ${this.skinTone}), using fallback`);
+      // Create a colored rectangle as fallback - scaled to match sprite size
+      this.bodySprite = scene.add.rectangle(0, 0, 16 * spriteScale, 24 * spriteScale, 0xffccaa).setOrigin(...origin);
     } else {
       this.bodySprite = scene.add.sprite(0, 0, useBodyKey).setOrigin(...origin).setScale(spriteScale);
     }
