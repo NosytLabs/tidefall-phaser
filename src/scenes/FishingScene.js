@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player.js';
 import { NPC, NPC_DATABASE } from '../entities/NPC.js';
-import { NPCFactory } from '../entities/NPCFactory.js';
 import { Boat, BoatManager } from '../entities/Boat.js';
 import { FishManager } from '../systems/FishManager.js';
 import { FishingSystem } from '../systems/FishingSystem.js';
@@ -1447,9 +1446,6 @@ export class FishingScene extends Phaser.Scene {
   }
 
   spawnNPCs() {
-    // Use Factory pattern for reliable NPC creation
-    const factory = new NPCFactory(this);
-    
     // MASSIVE NPC spread across 1920 width world
     const positions = [
       { x: 200, y: 280, config: NPC_DATABASE[0] },    // Fisherman Joe - left
@@ -1463,7 +1459,7 @@ export class FishingScene extends Phaser.Scene {
     ];
     
     positions.forEach(({ x, y, config }) => {
-      const npc = factory.create(x, y, config);
+      const npc = new NPC(this, x, y, config);
       this.npcs.push(npc);
       this.npcGroup.add(npc.container);
     });

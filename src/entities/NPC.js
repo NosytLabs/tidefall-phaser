@@ -13,7 +13,7 @@ export class NPC {
     this.dialogueIndex = 0;
     this.canInteract = false;
 
-    // Use safe values from factory if available, otherwise calculate
+    // Deterministic appearance from name hash
     const h = this._hash(config.name);
     const skinTones = ['brown', 'dark', 'light'];
     const hairStyles = ['short_hair', 'long_hair', 'pony_tail', 'spikey', 'big_bun', 'small_hair'];
@@ -21,11 +21,11 @@ export class NPC {
     const shirtColors = ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'];
     const pantsColors = ['black', 'blue_dark', 'blue_light', 'brown', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'];
 
-    this.skinTone = config._safeSkin || skinTones[h % skinTones.length];
-    this.hairStyle = config._safeHairStyle || hairStyles[(h >> 2) % hairStyles.length];
-    this.hairColor = config._safeHairColor || hairColors[(h >> 4) % hairColors.length];
-    this.shirtColor = config._safeShirt || shirtColors[(h >> 8) % shirtColors.length];
-    this.pantsColor = config._safePants || pantsColors[(h >> 12) % pantsColors.length];
+    this.skinTone = skinTones[h % skinTones.length];
+    this.hairStyle = hairStyles[(h >> 2) % hairStyles.length];
+    this.hairColor = hairColors[(h >> 4) % hairColors.length];
+    this.shirtColor = shirtColors[(h >> 8) % shirtColors.length];
+    this.pantsColor = pantsColors[(h >> 12) % pantsColors.length];
     this.facing = 'down';
 
     // Container
