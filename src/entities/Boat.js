@@ -35,14 +35,16 @@ export class Boat {
     this.container = scene.add.container(x, y);
     this.container.setDepth(DEPTH.BOATS);
     
-    // Create shadow (underneath boat)
+    // Create shadow (underneath boat) - add to container so it moves with boat
     this.shadow = scene.add.ellipse(0, 8, 50, 12, 0x000000, 0.2).setOrigin(0.5);
-    this.shadow.setDepth(DEPTH.BOATS - 1);
+    this.container.add(this.shadow);
+    this.shadow.setDepth(-1); // Relative to container
     
     // Boat sprite - MASSIVE scale
     const textureKey = `boat_${this.type}`;
     if (scene.textures.exists(textureKey)) {
-      this.boatSprite = scene.add.sprite(0, 0, textureKey).setOrigin(0.5);
+      // Smallburg boats are 128x128 spritesheets, use frame 0 for static view
+      this.boatSprite = scene.add.sprite(0, 0, textureKey, 0).setOrigin(0.5);
       this.boatSprite.setScale(SCALE.BOAT);
     } else {
       // Fallback: simple boat shape - scaled up
@@ -417,13 +419,9 @@ export class Boat {
       this.updateFishingRod();
     }
     
-    // Update shadow position to match container
-    this.shadow.x = this.container.x;
-    
     // Depth sort based on Y position
     const newDepth = DEPTH.BOATS + Math.floor(this.container.y / 100);
     this.container.setDepth(newDepth);
-    this.shadow.setDepth(newDepth - 1);
     if (this.passengerBobber) {
       this.passengerBobber.setDepth(newDepth);
     }
@@ -435,31 +433,25 @@ export class Boat {
   destroy() {
     // Stop tweens
     this.scene.tweens.killTweensOf(this.container);
-    this.scene.tweens.killTweensOf(this.shadow);
     
     // Remove event listeners
     if (this.boatSprite) {
       this.boatSprite.removeInteractive();
     }
     
-    // Destroy graphics
+    // Destroy graphics (not in container)
     if (this.fishingLine) {
       this.fishingLine.destroy();
     }
     
-    // Destroy bobber
+    // Destroy bobber (not in container)
     if (this.passengerBobber) {
       this.passengerBobber.destroy();
     }
     
-    // Destroy container (and children)
+    // Destroy container (and all children including shadow, boat, passenger)
     if (this.container) {
       this.container.destroy();
-    }
-    
-    // Destroy shadow
-    if (this.shadow) {
-      this.shadow.destroy();
     }
   }
 }

@@ -41,7 +41,18 @@ export class NPC {
     const bodyBase = scene.textures.exists(`idle_body_${this.skinTone}`) ? 'idle' : 'walk';
 
     // Create body sprite with idle animation if available
-    this.bodySprite = scene.add.sprite(0, 0, `${bodyBase}_body_${this.skinTone}`).setOrigin(...origin).setScale(spriteScale);
+    const bodyKey = `${bodyBase}_body_${this.skinTone}`;
+    const walkBodyKey = `walk_body_${this.skinTone}`;
+    const useBodyKey = scene.textures.exists(bodyKey) ? bodyKey : 
+                       scene.textures.exists(walkBodyKey) ? walkBodyKey : null;
+    
+    if (!useBodyKey) {
+      console.warn(`[NPC] No body texture found for ${config.name}, using fallback`);
+      // Create a colored rectangle as fallback
+      this.bodySprite = scene.add.rectangle(0, 0, 16, 24, 0xffccaa).setOrigin(...origin);
+    } else {
+      this.bodySprite = scene.add.sprite(0, 0, useBodyKey).setOrigin(...origin).setScale(spriteScale);
+    }
 
     // Create clothing sprites with fallback from idle to walk
     // Only create sprites if textures exist to avoid invisible placeholder sprites
@@ -211,13 +222,23 @@ export class NPC {
   syncLayers() {
     if (!this.bodySprite?.frame) return;
     const idx = this.bodySprite.frame.name;
-
-    const dirIndex = Math.floor(idx / 2);
-    const walkIdx = dirIndex * 6;
+    const isBodyIdle = this.bodySprite.texture.key.includes('idle');
+    
+    // Direction mapping: 0=down, 1=left, 2=right, 3=up (standard Smallburg order)
+    // Actually Phaser usually maps them as they appear in the strip.
+    // Based on BootScene directions = ['down', 'left', 'right', 'up']
+    const dirIndex = isBodyIdle ? Math.floor(idx / 2) : Math.floor(idx / 6);
 
     [this.pantsSprite, this.shirtSprite, this.hairSprite].forEach(s => {
       if (s && s.visible && s.texture) {
-        try { s.setFrame(walkIdx); } catch (e) {}
+        const isLayerIdle = s.texture.key.includes('idle');
+        const layerIdx = isLayerIdle ? (dirIndex * 2) : (dirIndex * 6);
+        
+        try { 
+          s.setFrame(layerIdx); 
+        } catch (e) {
+          console.warn(`[NPC] Failed to set frame ${layerIdx} for ${s.texture.key}`);
+        }
       }
     });
   }

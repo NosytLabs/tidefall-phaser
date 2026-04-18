@@ -163,14 +163,14 @@ export class BootScene extends Phaser.Scene {
       { frameWidth: 32, frameHeight: 16 });
 
     // Buildings
-    this.load.image('fish_market', 'assets/sprites/buildings/fish_market.png');
+    this.load.spritesheet('fish_market', 'assets/sprites/buildings/fish_market.png', { frameWidth: 128, frameHeight: 128 });
     this.load.image('barn', 'assets/sprites/buildings/barn_premade.png');
     this.load.image('greenhouse', 'assets/sprites/buildings/greenhouse_premade.png');
 
-    // Boats
-    this.load.image('boat_blue', 'assets/sprites/boats/boat_blue.png');
-    this.load.image('boat_yellow', 'assets/sprites/boats/boat_yellow.png');
-    this.load.image('boat_small', 'assets/sprites/boats/boat_small.png');
+    // Boats - Smallburg boats are 128x128 spritesheets with 8 frames
+    this.load.spritesheet('boat_blue', 'assets/sprites/boats/boat_blue.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('boat_yellow', 'assets/sprites/boats/boat_yellow.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.spritesheet('boat_small', 'assets/sprites/boats/boat_small.png', { frameWidth: 128, frameHeight: 128 });
     
     // Particles and effects
     // NOTE: Splash spritesheet removed - file doesn't exist
@@ -202,6 +202,8 @@ export class BootScene extends Phaser.Scene {
         `assets/sprites/character/catch/body/character_catch_body_${tone}.png`, ss);
       this.load.spritesheet(`reel_body_${tone}`, 
         `assets/sprites/character/reel/body/character_reel_body_${tone}.png`, ss);
+      this.load.spritesheet(`pull_body_${tone}`, 
+        `assets/sprites/character/pull/body/character_pull_body_${tone}.png`, ss);
     });
 
     // Hair variants (excluding brown_light which is already loaded)
@@ -460,6 +462,19 @@ export class BootScene extends Phaser.Scene {
             repeat: -1
           });
         }
+
+        // Pull: 8 frames per dir
+        if (this.textures.exists(`pull_body_${tone}`)) {
+          this.anims.create({
+            key: `pull_${tone}_${dir}`,
+            frames: this.anims.generateFrameNumbers(`pull_body_${tone}`, { 
+              start: dirIndex * 8, 
+              end: dirIndex * 8 + 7 
+            }),
+            frameRate: 10,
+            repeat: -1
+          });
+        }
       });
     });
 
@@ -574,114 +589,74 @@ export class BootScene extends Phaser.Scene {
   }
 
   createAnimalAnimations() {
-    // Chicken: 16 frames (4 directions x 4 frames)
+    const animalDirs = ['down', 'left', 'right', 'up'];
+
+    // Chicken: 16 frames walk, 4 frames idle
     if (this.textures.exists('chicken')) {
-      this.anims.create({
-        key: 'chicken_walk_down',
-        frames: this.anims.generateFrameNumbers('chicken', { start: 0, end: 3 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'chicken_walk_left',
-        frames: this.anims.generateFrameNumbers('chicken', { start: 4, end: 7 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'chicken_walk_right',
-        frames: this.anims.generateFrameNumbers('chicken', { start: 8, end: 11 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'chicken_walk_up',
-        frames: this.anims.generateFrameNumbers('chicken', { start: 12, end: 15 }),
-        frameRate: 8,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `chicken_walk_${dir}`,
+          frames: this.anims.generateFrameNumbers('chicken', { start: i * 4, end: i * 4 + 3 }),
+          frameRate: 8,
+          repeat: -1
+        });
       });
     }
     
     if (this.textures.exists('chicken_idle')) {
-      this.anims.create({
-        key: 'chicken_idle',
-        frames: this.anims.generateFrameNumbers('chicken_idle', { start: 0, end: 3 }),
-        frameRate: 4,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `chicken_idle_${dir}`,
+          frames: this.anims.generateFrameNumbers('chicken_idle', { start: i, end: i }),
+          frameRate: 4,
+          repeat: -1
+        });
       });
     }
 
-    // Cow: 16 frames (4 directions x 4 frames)
+    // Cow: 16 frames walk, 8 frames idle (2 per dir)
     if (this.textures.exists('cow')) {
-      this.anims.create({
-        key: 'cow_walk_down',
-        frames: this.anims.generateFrameNumbers('cow', { start: 0, end: 3 }),
-        frameRate: 6,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'cow_walk_left',
-        frames: this.anims.generateFrameNumbers('cow', { start: 4, end: 7 }),
-        frameRate: 6,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'cow_walk_right',
-        frames: this.anims.generateFrameNumbers('cow', { start: 8, end: 11 }),
-        frameRate: 6,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'cow_walk_up',
-        frames: this.anims.generateFrameNumbers('cow', { start: 12, end: 15 }),
-        frameRate: 6,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `cow_walk_${dir}`,
+          frames: this.anims.generateFrameNumbers('cow', { start: i * 4, end: i * 4 + 3 }),
+          frameRate: 6,
+          repeat: -1
+        });
       });
     }
     
     if (this.textures.exists('cow_idle')) {
-      this.anims.create({
-        key: 'cow_idle',
-        frames: this.anims.generateFrameNumbers('cow_idle', { start: 0, end: 7 }),
-        frameRate: 4,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `cow_idle_${dir}`,
+          frames: this.anims.generateFrameNumbers('cow_idle', { start: i * 2, end: i * 2 + 1 }),
+          frameRate: 4,
+          repeat: -1
+        });
       });
     }
 
-    // Pig: 16 frames (4 directions x 4 frames)
+    // Pig: 16 frames walk, 4 frames idle
     if (this.textures.exists('pig')) {
-      this.anims.create({
-        key: 'pig_walk_down',
-        frames: this.anims.generateFrameNumbers('pig', { start: 0, end: 3 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'pig_walk_left',
-        frames: this.anims.generateFrameNumbers('pig', { start: 4, end: 7 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'pig_walk_right',
-        frames: this.anims.generateFrameNumbers('pig', { start: 8, end: 11 }),
-        frameRate: 8,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'pig_walk_up',
-        frames: this.anims.generateFrameNumbers('pig', { start: 12, end: 15 }),
-        frameRate: 8,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `pig_walk_${dir}`,
+          frames: this.anims.generateFrameNumbers('pig', { start: i * 4, end: i * 4 + 3 }),
+          frameRate: 8,
+          repeat: -1
+        });
       });
     }
     
     if (this.textures.exists('pig_idle')) {
-      this.anims.create({
-        key: 'pig_idle',
-        frames: this.anims.generateFrameNumbers('pig_idle', { start: 0, end: 3 }),
-        frameRate: 4,
-        repeat: -1
+      animalDirs.forEach((dir, i) => {
+        this.anims.create({
+          key: `pig_idle_${dir}`,
+          frames: this.anims.generateFrameNumbers('pig_idle', { start: i, end: i }),
+          frameRate: 4,
+          repeat: -1
+        });
       });
     }
   }

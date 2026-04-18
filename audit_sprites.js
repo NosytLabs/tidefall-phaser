@@ -180,7 +180,7 @@ function auditFile(filePath, config) {
       const expectedFrames = {
         walk: { body: 24 }, // 4 directions x 6 frames
         idle: { body: 8 },  // 4 directions x 2 frames
-        throw: { body: 24 }, // 4 directions x 6 frames
+        throw: { body: 28 }, // 4 directions x 7 frames (FIXED: 448x256 / 64x64 = 7x4)
         catch: { body: 20 }, // 4 directions x 5 frames
         reel: { body: 16 },  // 4 directions x 4 frames
       };

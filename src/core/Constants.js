@@ -165,7 +165,7 @@ export const DEPTH = {
 // Scales - MASSIVE upscaling for expansive world
 export const SCALE = {
   PLAYER: 2.5,
-  BOAT: 2.0,
+  BOAT: 0.8,
   TREE_PALM: 1.5,
   TREE_PINE: 1.2,
   TREE_OAK: 1.8,

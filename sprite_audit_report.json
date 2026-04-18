@@ -1,67 +1,12 @@
 {
-  "timestamp": "2026-04-17T03:56:39.885Z",
+  "timestamp": "2026-04-18T01:38:29.050Z",
   "summary": {
     "total": 30,
-    "ok": 27,
-    "mismatch": 3,
+    "ok": 30,
+    "mismatch": 0,
     "errors": 0
   },
-  "mismatches": [
-    {
-      "file": "character\\throw\\body\\character_throw_body_brown.png",
-      "fullPath": "C:\\Users\\Tyson\\clawd\\tidefall-phaser\\public\\assets\\sprites\\character\\throw\\body\\character_throw_body_brown.png",
-      "actualWidth": 448,
-      "actualHeight": 256,
-      "expectedFrameWidth": 64,
-      "expectedFrameHeight": 64,
-      "calculatedFrames": {
-        "x": 7,
-        "y": 4,
-        "total": 28,
-        "isInteger": true
-      },
-      "category": "character",
-      "type": "body",
-      "status": "MISMATCH",
-      "issue": "Expected 24 frames, calculated 28 frames"
-    },
-    {
-      "file": "character\\throw\\body\\character_throw_body_dark.png",
-      "fullPath": "C:\\Users\\Tyson\\clawd\\tidefall-phaser\\public\\assets\\sprites\\character\\throw\\body\\character_throw_body_dark.png",
-      "actualWidth": 448,
-      "actualHeight": 256,
-      "expectedFrameWidth": 64,
-      "expectedFrameHeight": 64,
-      "calculatedFrames": {
-        "x": 7,
-        "y": 4,
-        "total": 28,
-        "isInteger": true
-      },
-      "category": "character",
-      "type": "body",
-      "status": "MISMATCH",
-      "issue": "Expected 24 frames, calculated 28 frames"
-    },
-    {
-      "file": "character\\throw\\body\\character_throw_body_light.png",
-      "fullPath": "C:\\Users\\Tyson\\clawd\\tidefall-phaser\\public\\assets\\sprites\\character\\throw\\body\\character_throw_body_light.png",
-      "actualWidth": 448,
-      "actualHeight": 256,
-      "expectedFrameWidth": 64,
-      "expectedFrameHeight": 64,
-      "calculatedFrames": {
-        "x": 7,
-        "y": 4,
-        "total": 28,
-        "isInteger": true
-      },
-      "category": "character",
-      "type": "body",
-      "status": "MISMATCH",
-      "issue": "Expected 24 frames, calculated 28 frames"
-    }
-  ],
+  "mismatches": [],
   "errors": [],
   "ok": [
     {
@@ -121,6 +66,36 @@
         "x": 2,
         "y": 4,
         "total": 8,
+        "isInteger": true
+      }
+    },
+    {
+      "file": "character\\throw\\body\\character_throw_body_brown.png",
+      "dimensions": "448x256",
+      "frames": {
+        "x": 7,
+        "y": 4,
+        "total": 28,
+        "isInteger": true
+      }
+    },
+    {
+      "file": "character\\throw\\body\\character_throw_body_dark.png",
+      "dimensions": "448x256",
+      "frames": {
+        "x": 7,
+        "y": 4,
+        "total": 28,
+        "isInteger": true
+      }
+    },
+    {
+      "file": "character\\throw\\body\\character_throw_body_light.png",
+      "dimensions": "448x256",
+      "frames": {
+        "x": 7,
+        "y": 4,
+        "total": 28,
         "isInteger": true
       }
     },

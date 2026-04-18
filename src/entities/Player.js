@@ -467,38 +467,40 @@ export class Player {
     this._lastFrame = idx;
     this._layerSyncDirty = false;
     
-    // Map animation frame to walk sprite frame
-    // Walk animations: 6 frames per direction (down: 0-5, left: 6-11, right: 12-17, up: 18-23)
-    // Idle animations: 2 frames per direction (down: 0-1, left: 2-3, right: 4-5, up: 6-7)
-    // Throw animations: 6 frames per direction
-    // Catch animations: 5 frames per direction
-    // Reel animations: 4 frames per direction
+    const isBodyIdle = this.bodySprite.texture.key.includes('idle');
+    const dirIndex = isBodyIdle ? Math.floor(idx / 2) : Math.floor(idx / 6);
+    const frameOffset = isBodyIdle ? (idx % 2) : (idx % 6);
     
-    const isIdle = this.stateMachine?.isInState('idle');
-    const currentAnim = this.bodySprite.anims.currentAnim?.key || '';
-    
-    let walkIdx;
-    if (isIdle) {
-      // Map idle frame to walk frame
-      // Idle: dirIndex * 2 + offset -> Walk: dirIndex * 6
-      const dirIndex = Math.floor(idx / 2);
-      const idleOffset = idx % 2;
-      walkIdx = dirIndex * 6 + idleOffset * 3; // Spread idle frames across walk
-    } else {
-      // Already in walk frame format
-      const dirIndex = Math.floor(idx / 6);
-      const walkOffset = idx % 6;
-      walkIdx = dirIndex * 6 + walkOffset;
-    }
-    
-    [this.pantsSprite, this.shirtSprite, this.hairSprite].forEach(s => {
-      if (s.visible && s.texture) {
-        try { 
-          s.setFrame(walkIdx); 
-        } catch(e) {
-          // Frame doesn't exist, hide this layer
-          s.setVisible(false);
+    // Process main layers
+    const layers = [
+      { walk: this.pantsSprite, idle: this.idlePantsSprite, type: 'pants' },
+      { walk: this.shirtSprite, idle: this.idleShirtSprite, type: 'shirt' },
+      { walk: this.hairSprite, idle: this.idleHairSprite, type: 'hair' }
+    ];
+
+    layers.forEach(layer => {
+      // Determine which sprite to use and set its frame
+      if (isBodyIdle && layer.idle && layer.idle.texture.key !== '__MISSING') {
+        if (layer.walk) layer.walk.setVisible(false);
+        layer.idle.setVisible(true);
+        layer.idle.setFrame(idx);
+        if (!this.container.exists(layer.idle)) this.container.add(layer.idle);
+      } else if (layer.walk && layer.walk.texture.key !== '__MISSING') {
+        if (layer.idle) layer.idle.setVisible(false);
+        layer.walk.setVisible(true);
+        
+        // Map frame if body is idle but clothing is walk
+        let walkFrame = idx;
+        if (isBodyIdle) {
+          walkFrame = dirIndex * 6 + frameOffset * 3; // Map 2 frames to 6
         }
+        
+        try {
+          layer.walk.setFrame(walkFrame);
+        } catch (e) {
+          layer.walk.setFrame(0);
+        }
+        if (!this.container.exists(layer.walk)) this.container.add(layer.walk);
       }
     });
   }

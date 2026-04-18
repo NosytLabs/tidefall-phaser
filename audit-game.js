@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
   
   // Navigate to game
   console.log('=== Starting Game Audit ===');
-  await page.goto('http://localhost:3001');
+  await page.goto('http://localhost:3000/');
   
   // Wait for initial load
   await page.waitForTimeout(5000);

@@ -138,7 +138,6 @@ export class FishingScene extends Phaser.Scene {
 
     // Core systems
     this.performanceMonitor = new PerformanceMonitor(this);
-    this.spritePool = new SpritePool(this, 'shadow_small', 20);
     this.particlePool = new ParticlePool(this, 30);
 
     // Game systems
@@ -201,13 +200,13 @@ export class FishingScene extends Phaser.Scene {
     // Sky gradient
     this.createSkyGradient(W, FOREST_BOTTOM);
 
-    // Tree canopy
+    // Tree canopy - Optimized with Graphics
+    const canopyGraphics = this.add.graphics().setDepth(1);
     for (let x = 0; x < W; x += 12) {
       const h = 12 + ((x * 7 + 3) % 18);
       const shade = 0x0d2808 + ((x * 3) % 3) * 0x010100;
-      this.treeGroup.add(
-        this.add.rectangle(x, FOREST_BOTTOM - h, 14, h, shade).setOrigin(0, 1).setDepth(1)
-      );
+      canopyGraphics.fillStyle(shade, 1);
+      canopyGraphics.fillRect(x, FOREST_BOTTOM - h, 14, h);
     }
 
     // Clouds
@@ -261,9 +260,9 @@ export class FishingScene extends Phaser.Scene {
     this.createForestDecorations(FOREST_BOTTOM);
     this.createBeachDecorations(SAND_Y, WATER_Y);
 
-    // Dirt path
-    this.groundGroup.add(this.add.rectangle(W / 2 - 5, GRASS_TOP, 10, SAND_Y - GRASS_TOP, 0x9a8a6a).setDepth(1));
-    this.groundGroup.add(this.add.rectangle(W / 2 - 3, GRASS_TOP, 6, SAND_Y - GRASS_TOP, 0xa89a7a).setDepth(1));
+    // Horizontal dirt path across the grass (not vertical)
+    // this.groundGroup.add(this.add.rectangle(W / 2 - 5, GRASS_TOP, 10, SAND_Y - GRASS_TOP, 0x9a8a6a).setDepth(1));
+    // this.groundGroup.add(this.add.rectangle(W / 2 - 3, GRASS_TOP, 6, SAND_Y - GRASS_TOP, 0xa89a7a).setDepth(1));
 
     // Buildings
     this.createBuildings(W, GRASS_TOP);
@@ -303,29 +302,31 @@ export class FishingScene extends Phaser.Scene {
   }
 
   createGrassDecorations(grassTop, sandY) {
-    // MASSIVE Grass patches - 40 patches across the world
-    const grassPatches = [];
+    const graphicsDepth0 = this.add.graphics().setDepth(0);
+    const graphicsDepth1 = this.add.graphics().setDepth(1);
+    
+    // MASSIVE Grass patches - 40 patches
     for (let i = 0; i < 40; i++) {
       const x = (i * 173 + 50) % this.scale.width;
       const y = 20 + ((i * 89) % (sandY - grassTop - 60));
       const w = 30 + (i % 25);
       const h = 18 + (i % 15);
       const shade = 0x3a6a20 + (i % 3) * 0x051005;
-      grassPatches.push([x, y, w, h, shade]);
+      
+      graphicsDepth0.fillStyle(shade, 1);
+      graphicsDepth0.fillRect(x, grassTop + y, w, h);
     }
-    grassPatches.forEach(([x, y, w, h, c]) => {
-      this.groundGroup.add(
-        this.add.rectangle(x, grassTop + y, w, h, c).setOrigin(0, 0).setDepth(0)
-      );
-    });
 
     // MASSIVE Grass tufts - 150 tufts
     for (let i = 0; i < 150; i++) {
       const gx = (i * 197 + 31) % this.scale.width;
       const gy = grassTop + 20 + ((i * 53) % (sandY - grassTop - 40));
       const scale = 1 + (i % 3);
-      this.groundGroup.add(this.add.rectangle(gx, gy, 1 * scale, 3 * scale, 0x3a7a22).setDepth(1));
-      this.groundGroup.add(this.add.rectangle(gx + 2 * scale, gy + 1, 1 * scale, 2 * scale, 0x2a6a18).setDepth(1));
+      
+      graphicsDepth1.fillStyle(0x3a7a22, 1);
+      graphicsDepth1.fillRect(gx, gy, 1 * scale, 3 * scale);
+      graphicsDepth1.fillStyle(0x2a6a18, 1);
+      graphicsDepth1.fillRect(gx + 2 * scale, gy + 1, 1 * scale, 2 * scale);
     }
 
     // MASSIVE Wildflowers - 60 flowers
@@ -335,20 +336,25 @@ export class FishingScene extends Phaser.Scene {
       const y = 30 + ((i * 131) % (sandY - grassTop - 60));
       const c = flowerColors[i % flowerColors.length];
       const size = 2 + (i % 3);
-      this.groundGroup.add(this.add.rectangle(x, grassTop + y, size, size, c).setDepth(1));
+      
+      graphicsDepth1.fillStyle(c, 1);
+      graphicsDepth1.fillRect(x, grassTop + y, size, size);
     }
 
-    // Add decorative rocks
+    // Add decorative rocks - keep as individual ellipses for now or draw as circles
     for (let i = 0; i < 25; i++) {
       const x = (i * 353 + 100) % this.scale.width;
       const y = grassTop + 40 + ((i * 167) % (sandY - grassTop - 80));
       const size = 4 + (i % 8);
       const shade = 0x666666 + (i % 4) * 0x111111;
-      this.groundGroup.add(this.add.ellipse(x, y, size, size * 0.7, shade).setDepth(1));
+      
+      graphicsDepth1.fillStyle(shade, 1);
+      graphicsDepth1.fillEllipse(x, y, size, size * 0.7);
     }
   }
 
   createForestDecorations(forestBottom) {
+    const graphics = this.add.graphics().setDepth(1);
     // Forest floor details
     for (let i = 0; i < 80; i++) {
       const x = (i * 113 + 20) % this.scale.width;
@@ -356,22 +362,26 @@ export class FishingScene extends Phaser.Scene {
       // Fallen leaves
       if (i % 3 === 0) {
         const leafColor = [0x8b4513, 0x228b22, 0xd2691e, 0xdaa520][i % 4];
-        this.groundGroup.add(this.add.rectangle(x, y, 2, 2, leafColor).setDepth(1).setAlpha(0.6));
+        graphics.fillStyle(leafColor, 0.6);
+        graphics.fillRect(x, y, 2, 2);
       }
     }
   }
 
   createBeachDecorations(sandY, waterY) {
+    const graphics = this.add.graphics().setDepth(1);
     // Beach pebbles and shells
     for (let i = 0; i < 50; i++) {
       const x = (i * 223 + 50) % this.scale.width;
       const y = sandY + 5 + ((i * 71) % (waterY - sandY - 10));
       const size = 2 + (i % 4);
       const shade = 0xc0c0c0 + (i % 3) * 0x101010;
-      this.groundGroup.add(this.add.ellipse(x, y, size, size * 0.6, shade).setDepth(1));
+      
+      graphics.fillStyle(shade, 1);
+      graphics.fillEllipse(x, y, size, size * 0.6);
     }
 
-    // Driftwood
+    // Driftwood - keep as objects for potential interaction
     for (let i = 0; i < 8; i++) {
       const x = (i * 400 + 150) % this.scale.width;
       const y = sandY + 10 + (i % 3) * 15;
@@ -382,8 +392,9 @@ export class FishingScene extends Phaser.Scene {
     for (let i = 0; i < 30; i++) {
       const x = (i * 317 + 80) % this.scale.width;
       const y = sandY + (i % 5) * 8;
-      this.groundGroup.add(this.add.rectangle(x, y, 1, 4, 0xbcaa70).setDepth(1));
-      this.groundGroup.add(this.add.rectangle(x + 2, y + 1, 1, 3, 0xbcaa70).setDepth(1));
+      graphics.fillStyle(0xbcaa70, 1);
+      graphics.fillRect(x, y, 1, 4);
+      graphics.fillRect(x + 2, y + 1, 1, 3);
     }
   }
 
@@ -595,12 +606,16 @@ export class FishingScene extends Phaser.Scene {
         });
         
         building.on('pointerdown', () => {
+          // Calculate distance to building center
+          const centerX = b.origin?.[0] === 0.5 ? b.x : b.x + (building.width * b.scale / 2);
+          const centerY = b.origin?.[1] === 0.5 ? b.y : b.y + (building.height * b.scale / 2);
+          
           const dist = Phaser.Math.Distance.Between(
             this.player?.x || 0, this.player?.y || 0,
-            b.origin?.[0] === 1 ? b.x - 40 : b.x + 40, b.y + 30
+            centerX, centerY
           );
           
-          if (dist < 120) {
+          if (dist < 150) {
             b.interaction();
           } else {
             this.events.emit('showMessage', 'Too far away! Move closer.');
@@ -740,31 +755,23 @@ export class FishingScene extends Phaser.Scene {
     }
 
     // Water shimmer
-    this.waterShimmer = [];
+    this.waterShimmerData = [];
+    this.waterShimmerGraphics = this.add.graphics().setDepth(DEPTH.WATER_EFFECTS);
     for (let i = 0; i < 12; i++) {
-      const s = this.add.rectangle(
-        Phaser.Math.Between(10, W - 10),
-        Phaser.Math.Between(waterY + 10, H - 10),
-        2, 1, 0xffffff, 0.15
-      ).setDepth(DEPTH.WATER_EFFECTS);
-      this.waterShimmer.push({
-        sprite: s,
-        baseX: s.x,
-        baseY: s.y,
+      this.waterShimmerData.push({
+        baseX: Phaser.Math.Between(10, W - 10),
+        baseY: Phaser.Math.Between(waterY + 10, H - 10),
         speed: 0.5 + Math.random() * 0.5,
         offset: Math.random() * Math.PI * 2
       });
-      this.waterEffectsGroup.add(s);
     }
     
     // Wave lines
-    this.waterWaves = [];
+    this.waterWavesData = [];
+    this.waterWavesGraphics = this.add.graphics().setDepth(DEPTH.WATER_EFFECTS);
     for (let i = 0; i < 5; i++) {
       const waveY = waterY + 20 + i * 20;
-      const wave = this.add.rectangle(W / 2, waveY, W - 20, 1, 0xffffff, 0.05)
-        .setDepth(DEPTH.WATER_EFFECTS);
-      this.waterWaves.push({
-        sprite: wave,
+      this.waterWavesData.push({
         baseY: waveY,
         speed: 0.2 + i * 0.1,
         offset: i * 1.5
@@ -1184,35 +1191,45 @@ export class FishingScene extends Phaser.Scene {
     if (!this.player || !this.cursors) {
       return;
     }
-    
-    // DEBUG-PRO: Performance profiling
-    this.performanceMetrics.frameCount++;
-    if (time - this.performanceMetrics.lastProfileTime > this.performanceMetrics.profileInterval) {
-      this.performanceMonitor.logPerformance();
-      this.checkMemoryLeaks();
-      this.performanceMetrics.lastProfileTime = time;
-    }
 
+    // Performance tracking
+    this.frameCounter = (this.frameCounter || 0) + 1;
+    
     // Process input
     this.processMovementInput();
 
     // Update entities
     this.player.update(delta);
-    this.npcs?.forEach(npc => npc.update(this.player.x, this.player.y));
-    this.updateAnimals(delta);
+    
+    // Throttle NPC and Animal updates
+    if (this.frameCounter % 2 === 0) {
+      this.npcs?.forEach(npc => npc.update(this.player.x, this.player.y));
+      this.updateAnimals(delta * 2); // Pass adjusted delta
+    }
 
     // Update systems
     this.fishingSystem.update(time, delta);
     this.fishManager.update(delta);
-    this.boatManager?.update();
-    this.updateWorldEffects(time, delta);
-    this.updateReflections();
+    
+    // Throttle world effects
+    if (this.frameCounter % 3 === 0) {
+      this.boatManager?.update();
+      this.updateWorldEffects(time, delta);
+      this.updateReflections();
+    }
 
-    // Depth sorting
-    this.children.sortByDepth();
+    // Depth sorting - HIGH COST: Only sort every 8 frames or if quality is high
+    const lowPerf = this.performanceMonitor?.qualityLevel === 'low';
+    const sortInterval = lowPerf ? 16 : 8;
+    
+    if (this.frameCounter % sortInterval === 0) {
+      this.children.sortByDepth();
+    }
 
-    // Update UI
-    this.updateUI();
+    // Update UI - Throttle to every 10 frames
+    if (this.frameCounter % 10 === 0) {
+      this.updateUI();
+    }
     
     // SELF-IMPROVING: Track play time
     this.analytics.updateStats('play_time', { delta });
@@ -1263,7 +1280,7 @@ export class FishingScene extends Phaser.Scene {
         animal.stateTimer = Phaser.Math.Between(2000, 6000);
         
         if (animal.state === 'walk') {
-          const dirs = ['down', 'up', 'left', 'right'];
+          const dirs = ['down', 'left', 'right', 'up'];
           animal.direction = dirs[Math.floor(Math.random() * dirs.length)];
           const speed = 0.3;
           switch (animal.direction) {
@@ -1277,6 +1294,8 @@ export class FishingScene extends Phaser.Scene {
         } else {
           animal.vx = 0;
           animal.vy = 0;
+          const idleAnim = `${animal.config.type}_idle_${animal.direction}`;
+          if (this.anims.exists(idleAnim)) s.play(idleAnim);
         }
       }
       
@@ -1320,17 +1339,28 @@ export class FishingScene extends Phaser.Scene {
       });
     }
 
-    // Water shimmer
-    this.waterShimmer?.forEach((s, i) => {
-      s.sprite.x = s.baseX + Math.sin(time * 0.0008 + s.offset) * 5;
-      s.sprite.alpha = 0.1 + Math.sin(time * 0.003 + s.offset) * 0.1;
-    });
+    // Water shimmer - Optimized with single Graphics object
+    if (this.waterShimmerGraphics && this.waterShimmerData) {
+      this.waterShimmerGraphics.clear();
+      this.waterShimmerData.forEach((s, i) => {
+        const x = s.baseX + Math.sin(time * 0.0008 + s.offset) * 5;
+        const alpha = 0.1 + Math.sin(time * 0.003 + s.offset) * 0.1;
+        this.waterShimmerGraphics.fillStyle(0xffffff, alpha);
+        this.waterShimmerGraphics.fillRect(x, s.baseY, 2, 1);
+      });
+    }
     
-    // Water waves
-    this.waterWaves?.forEach((w, i) => {
-      w.sprite.y = w.baseY + Math.sin(time * 0.001 * w.speed + w.offset) * 3;
-      w.sprite.alpha = 0.05 + Math.sin(time * 0.002 + w.offset) * 0.05;
-    });
+    // Water waves - Optimized with single Graphics object
+    if (this.waterWavesGraphics && this.waterWavesData) {
+      this.waterWavesGraphics.clear();
+      const W = this.scale.width;
+      this.waterWavesData.forEach((w, i) => {
+        const y = w.baseY + Math.sin(time * 0.001 * w.speed + w.offset) * 3;
+        const alpha = 0.05 + Math.sin(time * 0.002 + w.offset) * 0.05;
+        this.waterWavesGraphics.fillStyle(0xffffff, alpha);
+        this.waterWavesGraphics.fillRect(10, y, W - 20, 1);
+      });
+    }
   }
 
   updateReflections() {
@@ -1436,23 +1466,26 @@ export class FishingScene extends Phaser.Scene {
   }
 
   createMassiveFleet(waterY) {
-    // Create 8 boats across the massive ocean
+    // Create 8 boats spread across the ocean with proper spacing
+    const W = this.scale.width;
+    const boatSpacing = W / 9; // Spread evenly across width
+    
     const boatPositions = [
-      { x: 150, y: waterY + 60, type: 'small' },
-      { x: 450, y: waterY + 100, type: 'medium' },
-      { x: 750, y: waterY + 45, type: 'small' },
-      { x: 1050, y: waterY + 85, type: 'large' },
-      { x: 1350, y: waterY + 55, type: 'medium' },
-      { x: 1650, y: waterY + 110, type: 'small' },
-      { x: 1850, y: waterY + 70, type: 'large' },
-      { x: 300, y: waterY + 130, type: 'small' }
+      { x: boatSpacing * 1, y: waterY + 40 + Math.random() * 30, type: 'small' },
+      { x: boatSpacing * 2, y: waterY + 60 + Math.random() * 30, type: 'medium' },
+      { x: boatSpacing * 3, y: waterY + 35 + Math.random() * 30, type: 'small' },
+      { x: boatSpacing * 4, y: waterY + 80 + Math.random() * 30, type: 'large' },
+      { x: boatSpacing * 5, y: waterY + 50 + Math.random() * 30, type: 'medium' },
+      { x: boatSpacing * 6, y: waterY + 70 + Math.random() * 30, type: 'small' },
+      { x: boatSpacing * 7, y: waterY + 45 + Math.random() * 30, type: 'large' },
+      { x: boatSpacing * 8, y: waterY + 90 + Math.random() * 30, type: 'small' }
     ];
     
     boatPositions.forEach((pos, i) => {
       const boat = this.boatManager.createBoat(pos.x, pos.y, pos.type);
       if (boat) {
         // Add slight random offset for natural feel
-        boat.y += (i % 3) * 15;
+        boat.container.y += (i % 3) * 15;
       }
     });
   }
@@ -1498,7 +1531,6 @@ export class FishingScene extends Phaser.Scene {
     this.notificationSystem?.destroy();
     
     // Cleanup pools
-    this.spritePool?.destroy();
     this.particlePool?.destroy();
     
     // Stop tweens

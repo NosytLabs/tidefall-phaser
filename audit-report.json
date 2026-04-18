@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-04-17T15:33:07.734Z",
+  "timestamp": "2026-04-18T01:43:30.591Z",
   "gameState": {
     "hasGame": true,
-    "fps": 22.66796875,
+    "fps": 23.0546875,
     "scenes": [
       "BootScene",
       "FishingScene",
@@ -14,12 +14,18 @@
     "currentScene": "FishingScene"
   },
   "summary": {
-    "totalLogs": 32,
+    "totalLogs": 19,
     "errors": 0,
-    "warnings": 17,
-    "missingTextures": 12,
+    "warnings": 5,
+    "missingTextures": 0,
     "fpsDrops": 1
   },
   "errors": [],
-  "criticalLogs": []
+  "criticalLogs": [
+    {
+      "type": "log",
+      "text": "[ErrorBoundary] Error handlers installed",
+      "time": 1776476592422
+    }
+  ]
 }

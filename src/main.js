@@ -132,7 +132,7 @@ if (window.performance && performance.mark) {
       const target = game.loop.targetFps;
       const delta = Math.abs(target - fps);
       
-      if (delta > 10) {
+      if (fps < target - 10) {
         console.warn(`[Performance] FPS: ${fps}/${target} - Performance degraded`);
       }
     }, 10000);
