@@ -114,10 +114,11 @@ export class BootScene extends Phaser.Scene {
       'assets/sprites/character/reel/body/character_reel_body_light.png', ss);
     
     // Load ALL clothing variants needed for NPCs (critical)
-    const pantsColors = ['brown', 'black', 'blue_dark', 'blue_light', 'green_light'];
-    const shirtColors = ['blue_light', 'brown', 'green_dark', 'white', 'yellow'];
-    const hairColors = ['black', 'blonde', 'brown_light', 'red'];
-    const hairStyles = ['short_hair', 'long_hair', 'pony_tail', 'spikey'];
+    // Must match ASSETS.CHARACTER_*_COLORS in Constants.js
+    const pantsColors = ['black', 'blue_dark', 'blue_light', 'brown', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'];
+    const shirtColors = ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'];
+    const hairColors = ['black', 'blonde', 'blue', 'brown_dark', 'brown_light', 'green', 'pink', 'purple', 'red', 'white'];
+    const hairStyles = ['short_hair', 'long_hair', 'pony_tail', 'spikey', 'big_bun', 'small_hair'];
     
     // Load all pants (walk + idle)
     pantsColors.forEach(color => {
