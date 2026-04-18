@@ -13,6 +13,7 @@ import { FishEncyclopedia } from '../systems/FishEncyclopedia.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { PerformanceMonitor } from '../systems/PerformanceMonitor.js';
 import { ObjectPool, ParticlePool } from '../systems/ObjectPool.js';
+import { EnhancedRenderer } from '../systems/EnhancedRenderer.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { NotificationSystem } from '../systems/NotificationSystem.js';
@@ -139,6 +140,7 @@ export class FishingScene extends Phaser.Scene {
     // Core systems
     this.performanceMonitor = new PerformanceMonitor(this);
     this.particlePool = new ParticlePool(this, 30);
+    this.enhancedRenderer = new EnhancedRenderer(this);
 
     // Game systems
     this.fishData = this.cache.json.get('fishData');
@@ -197,8 +199,9 @@ export class FishingScene extends Phaser.Scene {
     this.particleGroup = this.add.group();
     this.reflectionGroup = this.add.group();
 
-    // Sky gradient
-    this.createSkyGradient(W, FOREST_BOTTOM);
+    // Enhanced atmospheric rendering
+    this.enhancedRenderer.createAtmosphericSky(W, FOREST_BOTTOM);
+    this.parallaxLayers = this.enhancedRenderer.createParallaxMountains(W, FOREST_BOTTOM);
 
     // Tree canopy - Optimized with Graphics
     const canopyGraphics = this.add.graphics().setDepth(1);
@@ -1358,6 +1361,14 @@ export class FishingScene extends Phaser.Scene {
   }
 
   updateWorldEffects(time, delta) {
+    // Parallax mountain scrolling
+    if (this.parallaxLayers && this.cameras.main) {
+      const scrollX = this.cameras.main.scrollX;
+      this.parallaxLayers.forEach(layer => {
+        layer.sprite.x = -scrollX * layer.speed;
+      });
+    }
+    
     // Clouds
     if (this.clouds) {
       this.clouds.forEach(cloud => {
