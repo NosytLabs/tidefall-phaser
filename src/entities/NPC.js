@@ -70,6 +70,11 @@ export class NPC {
     this.pantsSprite = this._createClothingSpriteSafe(scene, 'pants', this.pantsColor, origin, spriteScale);
     this.shirtSprite = this._createClothingSpriteSafe(scene, 'shirt', this.shirtColor, origin, spriteScale);
     this.hairSprite = this._createClothingSpriteSafe(scene, 'hair', `${this.hairStyle}_${this.hairColor}`, origin, spriteScale);
+    
+    // Debug logging
+    if (!this.pantsSprite) console.warn(`[NPC] ${config.name}: Missing pants_${this.pantsColor}`);
+    if (!this.shirtSprite) console.warn(`[NPC] ${config.name}: Missing shirt_${this.shirtColor}`);
+    if (!this.hairSprite) console.warn(`[NPC] ${config.name}: Missing hair_${this.hairStyle}_${this.hairColor}`);
 
     // Build container children array, filtering out null sprites
     const containerChildren = [shadow, this.bodySprite];
@@ -110,35 +115,29 @@ export class NPC {
 
   /**
    * Create a clothing sprite with idle -> walk fallback
-   * SAFE version: returns null if no valid texture exists
+   * Simplified version: less strict validation
    */
   _createClothingSpriteSafe(scene, type, colorOrStyle, origin, scale) {
     const idleKey = `idle_${type}_${colorOrStyle}`;
     const walkKey = `walk_${type}_${colorOrStyle}`;
 
-    // Check if idle texture exists and is valid
+    // Try idle first, then walk - just check if texture exists and has frames
     if (scene.textures.exists(idleKey)) {
-      const idleTexture = scene.textures.get(idleKey);
-      if (idleTexture && idleTexture.frameTotal > 0) {
-        const source = idleTexture.getSourceImage();
-        if (source && source.width > 0 && source.height > 0) {
-          return scene.add.sprite(0, 0, idleKey).setOrigin(...origin).setScale(scale);
-        }
+      const tex = scene.textures.get(idleKey);
+      if (tex && tex.frameTotal > 0) {
+        return scene.add.sprite(0, 0, idleKey).setOrigin(...origin).setScale(scale);
       }
     }
 
     // Fall back to walk texture
     if (scene.textures.exists(walkKey)) {
-      const walkTexture = scene.textures.get(walkKey);
-      if (walkTexture && walkTexture.frameTotal > 0) {
-        const source = walkTexture.getSourceImage();
-        if (source && source.width > 0 && source.height > 0) {
-          return scene.add.sprite(0, 0, walkKey).setOrigin(...origin).setScale(scale);
-        }
+      const tex = scene.textures.get(walkKey);
+      if (tex && tex.frameTotal > 0) {
+        return scene.add.sprite(0, 0, walkKey).setOrigin(...origin).setScale(scale);
       }
     }
 
-    // No valid texture found - return null instead of creating invisible sprite
+    // No valid texture - return null
     return null;
   }
 
