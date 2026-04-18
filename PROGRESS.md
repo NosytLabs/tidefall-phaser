@@ -16,7 +16,16 @@ Game renders but NPCs lack clothing, forest glitched, boat passengers broken.
 **Result:** NPCs now have clothing! Forest fixed too!
 
 ## Iteration 2 - Fix NPC Scale
-**File:** `src/entities/NPC.js`
-**What:** Increase NPC sprite scale from 2.0 to 3.0 for visibility
+**File:** `src/entities/NPC.js`, `src/entities/Boat.js`
+**What:** Increase NPC scale from 2.0→3.0, boat passengers 1.2→2.0
 **Validate:** NPCs are clearly visible, not tiny dots
-**Status:** In Progress
+**Status:** ✅ Complete - Committed b841747
+
+## Final Status
+**ALL MAJOR ISSUES FIXED:**
+- ✅ NPC clothing renders
+- ✅ Forest background fixed  
+- ✅ Boats spread evenly with visible passengers
+- ✅ NPCs properly scaled
+
+**Game is now fully playable!**

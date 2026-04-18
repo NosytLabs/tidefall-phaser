@@ -332,14 +332,14 @@ export const EVENTS = {
   SAVE_DELETED: 'save:deleted'
 };
 
-// Camera settings - optimized for massive world
+// Camera settings - BIGGER viewport for better visibility
 export const CAMERA = {
   FOLLOW_LERP: 0.08,
   FOLLOW_LERP_FAST: 0.15,
-  DEADZONE_WIDTH: 200,
-  DEADZONE_HEIGHT: 150,
-  DEADZONE_X: 100,
-  DEADZONE_Y: 75,
+  DEADZONE_WIDTH: 300,
+  DEADZONE_HEIGHT: 200,
+  DEADZONE_X: 150,
+  DEADZONE_Y: 100,
   SHAKE_DURATION_CATCH: 120,
   SHAKE_INTENSITY_COMMON: 0.003,
   SHAKE_INTENSITY_UNCOMMON: 0.005,
@@ -347,8 +347,10 @@ export const CAMERA = {
   SHAKE_INTENSITY_EPIC: 0.012,
   SHAKE_INTENSITY_LEGENDARY: 0.018,
   SMOOTH_ZOOM: true,
-  MIN_ZOOM: 0.5,
-  MAX_ZOOM: 2.0
+  MIN_ZOOM: 0.6,
+  MAX_ZOOM: 1.5,
+  DEFAULT_ZOOM: 0.8,  // Wider view by default
+  PAN_SPEED: 0.5
 };
 
 // Boat settings - bigger boats, bigger world

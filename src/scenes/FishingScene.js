@@ -799,12 +799,56 @@ export class FishingScene extends Phaser.Scene {
     camera.setBounds(0, 0, this.scale.width, this.scale.height);
     camera.roundPixels = true;
     
+    // BIGGER viewport - zoom out for better world view
+    camera.setZoom(CAMERA.DEFAULT_ZOOM);
+    
     // MASSIVE world camera follow with smooth lerp
     camera.startFollow(this.player.container, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
     camera.setDeadzone(CAMERA.DEADZONE_WIDTH, CAMERA.DEADZONE_HEIGHT);
     
-    // Enable smooth zoom transitions
-    camera.setZoom(1);
+    // Add camera pan with mouse drag
+    this.setupCameraPan();
+  }
+  
+  setupCameraPan() {
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let cameraStartX = 0;
+    let cameraStartY = 0;
+    
+    this.input.on('pointerdown', (pointer) => {
+      // Middle mouse or shift+click for pan
+      if (pointer.button === 1 || (pointer.button === 0 && pointer.event.shiftKey)) {
+        isDragging = true;
+        dragStartX = pointer.x;
+        dragStartY = pointer.y;
+        cameraStartX = this.cameras.main.scrollX;
+        cameraStartY = this.cameras.main.scrollY;
+      }
+    });
+    
+    this.input.on('pointermove', (pointer) => {
+      if (isDragging) {
+        const dx = (pointer.x - dragStartX) / this.cameras.main.zoom;
+        const dy = (pointer.y - dragStartY) / this.cameras.main.zoom;
+        this.cameras.main.setScroll(cameraStartX - dx, cameraStartY - dy);
+      }
+    });
+    
+    this.input.on('pointerup', () => {
+      isDragging = false;
+    });
+    
+    // Mouse wheel zoom
+    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+      const newZoom = Phaser.Math.Clamp(
+        this.cameras.main.zoom - deltaY * 0.001,
+        CAMERA.MIN_ZOOM,
+        CAMERA.MAX_ZOOM
+      );
+      this.cameras.main.zoomTo(newZoom, 200);
+    });
   }
 
   /**
