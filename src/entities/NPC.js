@@ -35,7 +35,7 @@ export class NPC {
     const shadow = scene.add.ellipse(0, 6, 14, 6, 0x000000, 0.25).setOrigin(0.5);
 
     const origin = [0.5, 0.75];
-    const spriteScale = 2.0;
+    const spriteScale = 3.0;
 
     // Determine base type (idle if exists and has frames, otherwise walk)
     const hasValidTexture = (key) => {

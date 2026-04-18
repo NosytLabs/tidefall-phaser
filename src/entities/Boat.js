@@ -86,7 +86,7 @@ export class Boat {
     const hairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
     
     const origin = [0.5, 0.75];
-    const scale = 1.2; // Slightly smaller since on boat
+    const scale = 2.0; // Bigger passengers for visibility
     
     // Create passenger container (relative to boat)
     this.passenger = this.scene.add.container(-5, -4);
