@@ -51,8 +51,9 @@ export class NPC {
     
     if (!useBodyKey) {
       console.warn(`[NPC] No valid body texture for ${config.name} (skin: ${this.skinTone}), using fallback`);
-      // Create a colored rectangle as fallback - scaled to match sprite size
-      this.bodySprite = scene.add.rectangle(0, 0, 16 * spriteScale, 24 * spriteScale, 0xffccaa).setOrigin(...origin);
+      // Create a visible fallback rectangle - make it obviously visible
+      this.bodySprite = scene.add.rectangle(0, 0, 32, 48, 0xff6666).setOrigin(0.5, 0.75);
+      this.bodySprite.setStrokeStyle(2, 0x000000);
     } else {
       this.bodySprite = scene.add.sprite(0, 0, useBodyKey).setOrigin(...origin).setScale(spriteScale);
     }
