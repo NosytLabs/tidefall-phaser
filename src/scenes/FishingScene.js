@@ -120,16 +120,6 @@ export class FishingScene extends Phaser.Scene {
       this.events.emit('showMessage', 'Critical error - please reload');
     }
   }
-      if (age > 60000) { // Older than 1 minute
-        leaks.push({ id, age, type: data.type });
-      }
-    });
-    
-    if (leaks.length > this.memoryWatch.leakThreshold) {
-      this.log('warn', `[FishingScene] Potential memory leak detected: ${leaks.length} objects`);
-      this.events.emit('showMessage', 'Warning: Memory usage high');
-    }
-  }
 
   initializeSystems() {
     const W = this.scale.width;
