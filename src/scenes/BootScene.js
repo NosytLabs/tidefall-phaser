@@ -399,81 +399,110 @@ export class BootScene extends Phaser.Scene {
       // Only create animations for loaded textures
       if (!this.textures.exists(`walk_body_${tone}`)) return;
       
+      // Get actual frame counts from textures
+      const getFrameCount = (key) => {
+        if (!this.textures.exists(key)) return 0;
+        return this.textures.get(key).frameTotal;
+      };
+      
+      const walkFrames = getFrameCount(`walk_body_${tone}`);
+      const idleFrames = getFrameCount(`idle_body_${tone}`);
+      const throwFrames = getFrameCount(`throw_body_${tone}`);
+      const catchFrames = getFrameCount(`catch_body_${tone}`);
+      const reelFrames = getFrameCount(`reel_body_${tone}`);
+      const pullFrames = getFrameCount(`pull_body_${tone}`);
+      
+      // Calculate frames per direction dynamically
+      const walkFPD = Math.floor(walkFrames / 4);
+      const idleFPD = Math.floor(idleFrames / 4);
+      const throwFPD = Math.floor(throwFrames / 4);
+      const catchFPD = Math.floor(catchFrames / 4);
+      const reelFPD = Math.floor(reelFrames / 4);
+      const pullFPD = Math.floor(pullFrames / 4);
+      
       directions.forEach((dir, dirIndex) => {
-        // Walk: 6 frames per dir
-        this.anims.create({
-          key: `walk_${tone}_${dir}`,
-          frames: this.anims.generateFrameNumbers(`walk_body_${tone}`, { 
-            start: dirIndex * 6, 
-            end: dirIndex * 6 + 5 
-          }),
-          frameRate: 10,
-          repeat: -1
-        });
-        
-        // Idle: 2 frames per dir
-        if (this.textures.exists(`idle_body_${tone}`)) {
-          this.anims.create({
-            key: `idle_${tone}_${dir}`,
-            frames: this.anims.generateFrameNumbers(`idle_body_${tone}`, { 
-              start: dirIndex * 2, 
-              end: dirIndex * 2 + 1 
-            }),
-            frameRate: 3,
-            repeat: -1
-          });
+        // Walk animation
+        if (walkFrames > 0) {
+          const start = dirIndex * walkFPD;
+          const end = Math.min(start + walkFPD - 1, walkFrames - 1);
+          if (start < walkFrames) {
+            this.anims.create({
+              key: `walk_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`walk_body_${tone}`, { start, end }),
+              frameRate: 10,
+              repeat: -1
+            });
+          }
         }
         
-        // Throw: 7 frames per dir
-        if (this.textures.exists(`throw_body_${tone}`)) {
-          this.anims.create({
-            key: `throw_${tone}_${dir}`,
-            frames: this.anims.generateFrameNumbers(`throw_body_${tone}`, { 
-              start: dirIndex * 7, 
-              end: dirIndex * 7 + 6 
-            }),
-            frameRate: 12,
-            repeat: 0
-          });
+        // Idle animation
+        if (idleFrames > 0) {
+          const start = dirIndex * idleFPD;
+          const end = Math.min(start + idleFPD - 1, idleFrames - 1);
+          if (start < idleFrames) {
+            this.anims.create({
+              key: `idle_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`idle_body_${tone}`, { start, end }),
+              frameRate: 3,
+              repeat: -1
+            });
+          }
         }
         
-        // Catch: 5 frames per dir
-        if (this.textures.exists(`catch_body_${tone}`)) {
-          this.anims.create({
-            key: `catch_${tone}_${dir}`,
-            frames: this.anims.generateFrameNumbers(`catch_body_${tone}`, { 
-              start: dirIndex * 5, 
-              end: dirIndex * 5 + 4 
-            }),
-            frameRate: 12,
-            repeat: 0
-          });
+        // Throw animation
+        if (throwFrames > 0) {
+          const start = dirIndex * throwFPD;
+          const end = Math.min(start + throwFPD - 1, throwFrames - 1);
+          if (start < throwFrames) {
+            this.anims.create({
+              key: `throw_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`throw_body_${tone}`, { start, end }),
+              frameRate: 12,
+              repeat: 0
+            });
+          }
         }
         
-        // Reel: 4 frames per dir
-        if (this.textures.exists(`reel_body_${tone}`)) {
-          this.anims.create({
-            key: `reel_${tone}_${dir}`,
-            frames: this.anims.generateFrameNumbers(`reel_body_${tone}`, { 
-              start: dirIndex * 4, 
-              end: dirIndex * 4 + 3 
-            }),
-            frameRate: 8,
-            repeat: -1
-          });
+        // Catch animation
+        if (catchFrames > 0) {
+          const start = dirIndex * catchFPD;
+          const end = Math.min(start + catchFPD - 1, catchFrames - 1);
+          if (start < catchFrames) {
+            this.anims.create({
+              key: `catch_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`catch_body_${tone}`, { start, end }),
+              frameRate: 12,
+              repeat: 0
+            });
+          }
+        }
+        
+        // Reel animation
+        if (reelFrames > 0) {
+          const start = dirIndex * reelFPD;
+          const end = Math.min(start + reelFPD - 1, reelFrames - 1);
+          if (start < reelFrames) {
+            this.anims.create({
+              key: `reel_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`reel_body_${tone}`, { start, end }),
+              frameRate: 8,
+              repeat: -1
+            });
+          }
         }
 
-        // Pull: 8 frames per dir
-        if (this.textures.exists(`pull_body_${tone}`)) {
-          this.anims.create({
-            key: `pull_${tone}_${dir}`,
-            frames: this.anims.generateFrameNumbers(`pull_body_${tone}`, { 
-              start: dirIndex * 8, 
-              end: dirIndex * 8 + 7 
-            }),
-            frameRate: 10,
-            repeat: -1
-          });
+        // Pull animation
+        if (pullFrames > 0) {
+          const start = dirIndex * pullFPD;
+          const end = Math.min(start + pullFPD - 1, pullFrames - 1);
+          if (start < pullFrames) {
+            this.anims.create({
+              key: `pull_${tone}_${dir}`,
+              frames: this.anims.generateFrameNumbers(`pull_body_${tone}`, { start, end }),
+              frameRate: 10,
+              repeat: -1
+            });
+          }
         }
       });
     });
