@@ -770,17 +770,24 @@ export class FishingScene extends Phaser.Scene {
       });
     }
     
-    // Wave lines
+    // Enhanced wave system with multiple layers
     this.waterWavesData = [];
     this.waterWavesGraphics = this.add.graphics().setDepth(DEPTH.WATER_EFFECTS);
-    for (let i = 0; i < 5; i++) {
-      const waveY = waterY + 20 + i * 20;
+    
+    // Create 8 wave lines with varied speeds and amplitudes
+    for (let i = 0; i < 8; i++) {
+      const waveY = waterY + 15 + i * 25;
       this.waterWavesData.push({
         baseY: waveY,
-        speed: 0.2 + i * 0.1,
-        offset: i * 1.5
+        speed: 0.3 + (i % 3) * 0.2,
+        amplitude: 2 + (i % 4),
+        offset: i * 0.8,
+        alpha: 0.1 + (i % 3) * 0.05
       });
     }
+    
+    // Add foam effects at water edge
+    this.createWaterFoam(W, waterY);
     
     // Create reflections
     this.createReflections(W, H, waterY);
@@ -1361,7 +1368,32 @@ export class FishingScene extends Phaser.Scene {
     });
   }
 
+  createWaterFoam(W, waterY) {
+    // Create foam sprites along the water edge
+    this.foamSprites = [];
+    for (let i = 0; i < 20; i++) {
+      const x = (i * 100) % W;
+      const foam = this.add.ellipse(x, waterY + 5, 30, 8, 0xffffff, 0.3)
+        .setDepth(DEPTH.WATER_EFFECTS + 1);
+      this.foamSprites.push({
+        sprite: foam,
+        baseX: x,
+        speed: 0.5 + Math.random() * 0.5,
+        offset: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
   updateWorldEffects(time, delta) {
+    // Animate foam
+    if (this.foamSprites) {
+      this.foamSprites.forEach(foam => {
+        const x = foam.baseX + Math.sin(time * 0.001 * foam.speed + foam.offset) * 10;
+        foam.sprite.x = x;
+        foam.sprite.alpha = 0.2 + Math.sin(time * 0.002 + foam.offset) * 0.15;
+      });
+    }
+    
     // Clouds
     if (this.clouds) {
       this.clouds.forEach(cloud => {
@@ -1398,15 +1430,28 @@ export class FishingScene extends Phaser.Scene {
       });
     }
     
-    // Water waves - Optimized with single Graphics object
+    // Water waves - Enhanced with sine wave curves
     if (this.waterWavesGraphics && this.waterWavesData) {
       this.waterWavesGraphics.clear();
       const W = this.scale.width;
+      
       this.waterWavesData.forEach((w, i) => {
-        const y = w.baseY + Math.sin(time * 0.001 * w.speed + w.offset) * 3;
-        const alpha = 0.05 + Math.sin(time * 0.002 + w.offset) * 0.05;
-        this.waterWavesGraphics.fillStyle(0xffffff, alpha);
-        this.waterWavesGraphics.fillRect(10, y, W - 20, 1);
+        const y = w.baseY + Math.sin(time * 0.001 * w.speed + w.offset) * w.amplitude;
+        
+        // Draw wave line with varying alpha
+        this.waterWavesGraphics.lineStyle(2, 0xffffff, w.alpha);
+        this.waterWavesGraphics.beginPath();
+        
+        // Create sine wave across screen
+        for (let x = 0; x <= W; x += 20) {
+          const waveY = y + Math.sin((x / 100) + time * 0.001 + w.offset) * 2;
+          if (x === 0) {
+            this.waterWavesGraphics.moveTo(x, waveY);
+          } else {
+            this.waterWavesGraphics.lineTo(x, waveY);
+          }
+        }
+        this.waterWavesGraphics.strokePath();
       });
     }
   }

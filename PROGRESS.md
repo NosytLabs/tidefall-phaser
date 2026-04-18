@@ -1,31 +1,38 @@
-# Ralph: Fix Tidefall Game Rendering
+# Ralph: Make Tidefall Game Much Better
 
-## Current Status
-Game renders but NPCs lack clothing, forest glitched, boat passengers broken.
+## Current Status (Baseline)
+Game is functional with:
+- ✅ Working NPCs with clothing
+- ✅ Boats spread evenly
+- ✅ Bigger viewport (0.8x zoom)
+- ✅ Buildings visible
+- ⚠️ World feels empty/flat
+- ⚠️ Missing atmospheric effects
+- ⚠️ Water is static
+- ⚠️ No weather effects
+- ⚠️ Terrain lacks detail
 
-## Issues Identified
-1. NPC clothing textures not loading (colors mismatch)
-2. Forest background showing circles instead of trees
-3. Boat passengers not rendering
+## Iteration Plan
 
-## Iteration 1 - Fix NPC Clothing
-**File:** `src/scenes/BootScene.js`
-**What:** Load ALL clothing colors that NPCs use (not just subset)
-**Validate:** Screenshot shows NPCs with full clothing
-**Status:** ✅ Complete - Committed d22738e
-**Result:** NPCs now have clothing! Forest fixed too!
+### Phase 1: Atmosphere & Visual Polish
+- [ ] Improve water with animated waves
+- [ ] Add weather particle effects
+- [ ] Enhance terrain with more details
+- [ ] Better lighting/day-night cycle
 
-## Iteration 2 - Fix NPC Scale
-**File:** `src/entities/NPC.js`, `src/entities/Boat.js`
-**What:** Increase NPC scale from 2.0→3.0, boat passengers 1.2→2.0
-**Validate:** NPCs are clearly visible, not tiny dots
-**Status:** ✅ Complete - Committed b841747
+### Phase 2: World Depth
+- [ ] Add parallax background layers
+- [ ] More environmental decorations
+- [ ] Animated elements (grass, trees)
+- [ ] Better cloud system
 
-## Final Status
-**ALL MAJOR ISSUES FIXED:**
-- ✅ NPC clothing renders
-- ✅ Forest background fixed  
-- ✅ Boats spread evenly with visible passengers
-- ✅ NPCs properly scaled
+### Phase 3: Gameplay Polish
+- [ ] Better fishing feedback
+- [ ] Enhanced UI/UX
+- [ ] Sound effects integration
+- [ ] Particle effects for actions
 
-**Game is now fully playable!**
+## Current Iteration
+**Iteration 1** - Improve water with animated waves
+**File:** `src/scenes/FishingScene.js`
+**Status:** In Progress
