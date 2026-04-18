@@ -50,10 +50,17 @@ export class NPC {
                        hasValidTexture(walkKey) ? walkKey : null;
     
     if (!useBodyKey) {
-      console.warn(`[NPC] No valid body texture for ${config.name} (skin: ${this.skinTone}), using fallback`);
-      // Create a visible fallback rectangle - make it obviously visible
-      this.bodySprite = scene.add.rectangle(0, 0, 32, 48, 0xff6666).setOrigin(0.5, 0.75);
-      this.bodySprite.setStrokeStyle(2, 0x000000);
+      console.error(`[NPC] CRITICAL: No body texture for ${config.name} (skin: ${this.skinTone})`);
+      // Use light skin as ultimate fallback
+      const fallbackKey = hasValidTexture('idle_body_light') ? 'idle_body_light' : 
+                         hasValidTexture('walk_body_light') ? 'walk_body_light' : null;
+      if (fallbackKey) {
+        this.bodySprite = scene.add.sprite(0, 0, fallbackKey).setOrigin(...origin).setScale(spriteScale);
+      } else {
+        // Last resort - colored rectangle
+        this.bodySprite = scene.add.rectangle(0, 0, 32, 48, 0xff6666).setOrigin(0.5, 0.75);
+        this.bodySprite.setStrokeStyle(2, 0x000000);
+      }
     } else {
       this.bodySprite = scene.add.sprite(0, 0, useBodyKey).setOrigin(...origin).setScale(spriteScale);
     }

@@ -96,12 +96,16 @@ export class BootScene extends Phaser.Scene {
       this.load.image(`fish_${name}`, `assets/sprites/fish/${name}/static_fish.png`);
     });
 
-    // Default player appearance (light skin, brown hair)
-    // Body animations
-    this.load.spritesheet('walk_body_light', 
-      'assets/sprites/character/walk/body/character_walk_body_light.png', ss);
-    this.load.spritesheet('idle_body_light', 
-      'assets/sprites/character/idle/body/character_idle_body_light.png', ss);
+    // All skin tones for NPCs (critical - needed immediately)
+    const skinTones = ['light', 'brown', 'dark'];
+    skinTones.forEach(tone => {
+      this.load.spritesheet(`walk_body_${tone}`, 
+        `assets/sprites/character/walk/body/character_walk_body_${tone}.png`, ss);
+      this.load.spritesheet(`idle_body_${tone}`, 
+        `assets/sprites/character/idle/body/character_idle_body_${tone}.png`, ss);
+    });
+    
+    // Player-specific action animations (only light needed for player)
     this.load.spritesheet('throw_body_light', 
       'assets/sprites/character/throw/body/character_throw_body_light.png', ss);
     this.load.spritesheet('catch_body_light', 
@@ -109,19 +113,37 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('reel_body_light', 
       'assets/sprites/character/reel/body/character_reel_body_light.png', ss);
     
-    // Default clothing (WALK)
-    this.load.spritesheet('walk_pants_brown', 
-      'assets/sprites/character/walk/pants/character_walk_pants_brown.png', ss);
-    this.load.spritesheet('walk_shirt_blue_light', 
-      'assets/sprites/character/walk/shirt/character_walk_shirt_blue_light.png', ss);
-    this.load.spritesheet('walk_hair_short_hair_brown_light', 
-      'assets/sprites/character/walk/hair/character_walk_hair_short_hair_brown_light.png', ss);
+    // Load ALL clothing variants needed for NPCs (critical)
+    const pantsColors = ['brown', 'black', 'blue_dark', 'blue_light', 'green_light'];
+    const shirtColors = ['blue_light', 'brown', 'green_dark', 'white', 'yellow'];
+    const hairColors = ['black', 'blonde', 'brown_light', 'red'];
+    const hairStyles = ['short_hair', 'long_hair', 'pony_tail', 'spikey'];
     
-    // Default clothing (IDLE) - for better idle animations
-    this.load.spritesheet('idle_pants_brown', 
-      'assets/sprites/character/idle/pants/character_idle_pants_brown.png', ss);
-    this.load.spritesheet('idle_shirt_blue_light', 
-      'assets/sprites/character/idle/shirt/character_idle_shirt_blue_light.png', ss);
+    // Load all pants (walk + idle)
+    pantsColors.forEach(color => {
+      this.load.spritesheet(`walk_pants_${color}`, 
+        `assets/sprites/character/walk/pants/character_walk_pants_${color}.png`, ss);
+      this.load.spritesheet(`idle_pants_${color}`, 
+        `assets/sprites/character/idle/pants/character_idle_pants_${color}.png`, ss);
+    });
+    
+    // Load all shirts (walk + idle)
+    shirtColors.forEach(color => {
+      this.load.spritesheet(`walk_shirt_${color}`, 
+        `assets/sprites/character/walk/shirt/character_walk_shirt_${color}.png`, ss);
+      this.load.spritesheet(`idle_shirt_${color}`, 
+        `assets/sprites/character/idle/shirt/character_idle_shirt_${color}.png`, ss);
+    });
+    
+    // Load all hair combinations (walk + idle)
+    hairStyles.forEach(style => {
+      hairColors.forEach(color => {
+        this.load.spritesheet(`walk_hair_${style}_${color}`, 
+          `assets/sprites/character/walk/hair/character_walk_hair_${style}_${color}.png`, ss);
+        this.load.spritesheet(`idle_hair_${style}_${color}`, 
+          `assets/sprites/character/idle/hair/character_idle_hair_${style}_${color}.png`, ss);
+      });
+    });
     this.load.spritesheet('idle_hair_short_hair_brown_light', 
       'assets/sprites/character/idle/hair/character_idle_hair_short_hair_brown_light.png', ss);
 
