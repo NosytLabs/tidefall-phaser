@@ -1,0 +1,61 @@
+Change log
+========================
+
+MINE CART UPDATE
+
+* V1.16 [07-05-2023] - Added mine cart hairstyles (3) animations
+* V1.15 [01-05-2023] - Added mine cart hairstyles (3) animations
+* V1.14 [30-03-2023] - Added mine cart hairstyles (3) animations
+* V1.13 [10-03-2023] - Added mine cart animations
+
+V1.12 [3-03-2023]
+-----------------
+* Added 3 mine entrances
+
+V1.11 [24-02-2023]
+-----------------
+* Added 3 mine entrances
+
+V1.10 [17-02-2023]
+-----------------
+* Added 3 mine entrances
+
+V1.9 [31-01-2023]
+-----------------
+* Added critter rat death animation
+
+V1.8 [14-01-2023]
+-----------------
+* Added critter rat movement  animation
+
+V1.7 [14-01-2023]
+-----------------
+* Added critter rat
+
+V1.6 [14-01-2023]
+-----------------
+* Added mine cart brake animations
+
+V1.5 [13-01-2023]
+-----------------
+* Added mine cart connectors
+
+V1.4 [23-07-2023]
+-----------------
+* Added the green skin animations (for dungeon pack) for the mine pack
+
+V1.3 [11-06-2023]
+-----------------
+* Added a yellow crystal crate props
+
+V1.2 [7-05-2023]
+-----------------
+* Added a yellow crystal
+
+V1.1 [28-04-2023]
+-----------------
+* Added Hazmat suit clothing
+
+V1.0 [23-04-2023]
+-----------------
+* Released v1.0

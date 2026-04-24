@@ -1,0 +1,127 @@
+Change log
+========================
+
+
+
+----------------------------
+Skeleton Enemy Family Update
+----------------------------
+
+SKELETON ARCHER
+* V2.13 [07-05-2024] - Added Archer Walk animation
+* V2.12 [01-05-2024] - Added Archer Idle animation
+
+SKELETON PATCH
+* V2.11 [30-03-2024] - Added the skeleton pit
+
+V2.10 [10-03-2024]
+-----------------
+* Reworked the skeleton base.
+* Reworked the skeleton kings animations.
+* Update the skeleton drops icons
+
+
+
+V2.09 [3-03-2024]
+-----------------
+* Added rest of the clothing for the hit animation
+
+V2.8 [25-02-2024]
+-----------------
+* Added accessories, full body and chest animation for hit animation
+
+V2.7 [18-02-2024]
+-----------------
+* Added the rest of the hair animations for hit animation
+
+V2.6 [04-02-2024]
+-----------------
+* Added radical curve, banned hair, Long hair and pony tail for the hit animation
+
+V2.5 [22-01-2024]
+-----------------
+* Added the hit animation for the Mage Armor
+
+V2.4 [20-01-2024]
+-----------------
+* Added the hit animation for the Rogue Armor
+
+V2.3 [14-01-2024]
+-----------------
+* Added the hit animation for the Knight Armor
+
+
+V2.2 [13-01-2024]
+-----------------
+* Added the base hit animation for base bodies
+
+
+V2.1 [23-07-2023]
+-----------------
+* Added the armors for each class
+* Added staff weapons
+* Added hammer weapons
+* Added Super Slash Animations to all weapons
+
+V2.0 [01-07-2023]
+-----------------
+* Changed the base animations to character V3
+* Added hairstyles to all animations
+* Added clothing to all animations
+
+V1.8.1 [5-10-2022]
+-----------------
+* Added premades for knight 
+
+
+V1.8.1 [5-10-2022]
+-----------------
+* Corrected the missing character animations
+
+V1.8 [5-10-2022]
+-----------------
+* Added wall traps
+* Added wall buttons
+
+V1.7 [14-09-2022]
+-----------------
+* Added slash animations
+* Added Armour updates
+
+
+V1.6 [14-07-2022]
+-----------------
+* Added the new door frames and doors.
+
+V1.5 [31-07-2022]
+-----------------
+* Added the basic UI
+
+
+V1.4 [16-07-2022]
+* Added a floor trap, the spike trap
+
+V1.3 [07-07-2022]
+-----------------
+* Added new floors
+* Changed all animations to be in the following order Right, Left, Down, Up
+
+V1.2 [30-07-2022]
+-----------------
+* Updated the folders
+* Expanded all animations to their own folders
+* Added blue floors
+* Added skeleton enemy
+* Added skeleton king enemy
+
+V1.1 [20-06-2022]
+-----------------
+* Added death animations
+* Added Body death animations
+* Added armor death animations
+* Added hairs death animations
+
+
+V1.0 [15-06-2022]
+-----------------
+* Released v1.0

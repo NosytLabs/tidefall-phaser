@@ -1,0 +1,94 @@
+{
+  "quests": [
+    {
+      "id": "catch_first_fish",
+      "title": "First Catch",
+      "description": "Catch any fish to get started!",
+      "giver": "Fisherman Joe",
+      "type": "catch_count",
+      "isStarter": true,
+      "requirements": { "count": 1 },
+      "reward": { "gold": 50, "xp": 10 },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "catch_5_fish",
+      "title": "Getting Started",
+      "description": "Catch 5 fish to prove your skills.",
+      "giver": "Fisherman Joe",
+      "type": "catch_count",
+      "requirements": { "count": 5 },
+      "reward": { "gold": 200, "xp": 50, "items": ["bait_worm"] },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "catch_bass",
+      "title": "Bass Hunter",
+      "description": "Catch 3 Bass for the village dinner.",
+      "giver": "Chef Gordon",
+      "type": "catch_specific",
+      "requirements": { "fishId": "bass", "count": 3 },
+      "reward": { "gold": 150, "xp": 75 },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "rare_catch",
+      "title": "Rare Find",
+      "description": "Catch a Rare quality fish.",
+      "giver": "Mayor Elsa",
+      "type": "catch_rarity",
+      "requirements": { "rarity": "rare", "count": 1 },
+      "reward": { "gold": 500, "xp": 200, "items": ["rod_fiberglass"] },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "legendary_catch",
+      "title": "Legendary Hunter",
+      "description": "Catch a Legendary fish! Only the best can do this.",
+      "giver": "Fisherman Joe",
+      "type": "catch_rarity",
+      "requirements": { "rarity": "legendary", "count": 1 },
+      "reward": { "gold": 2000, "xp": 1000, "title": "Master Angler" },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "big_fish",
+      "title": "The Big One",
+      "description": "Catch a fish weighing over 20kg.",
+      "giver": "Fisherman Joe",
+      "type": "catch_weight",
+      "requirements": { "minWeight": 20 },
+      "reward": { "gold": 300, "xp": 150, "items": ["bait_premium"] },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "earn_1000_gold",
+      "title": "Entrepreneur",
+      "description": "Earn 1000 gold from fishing.",
+      "giver": "Chef Gordon",
+      "type": "earn_gold",
+      "requirements": { "amount": 1000 },
+      "reward": { "gold": 500, "xp": 200 },
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "id": "collect_10_species",
+      "title": "Collector",
+      "description": "Catch 10 different species of fish.",
+      "giver": "Mayor Elsa",
+      "type": "unique_species",
+      "requirements": { "count": 10 },
+      "reward": { "gold": 500, "xp": 300 },
+      "uniqueSpecies": [],
+      "progress": 0,
+      "completed": false
+    }
+  ]
+}

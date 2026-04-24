@@ -1,0 +1,33 @@
+Change log
+========================
+
+--------------------
+NEW FISH UPDATE
+--------------------
+* V1.07 [07-05-2024] - Added Neon Tetra dark blue animations
+* V1.06 [01-05-2024] - Added Neon Tetra light blue animations
+
+V1.05 [30-03-2024]
+-----------------
+* Added big algae static
+
+V1.04 [10-03-2024]
+-----------------
+* Added below water animation
+
+V1.03 [3-03-2024]
+-----------------
+* Added for the swim animations the remaining 4 hairstyles
+
+V1.02 [25-02-2024]
+-----------------
+* Added for the  swim animations 5 hairstyles
+
+V1.01 [17-02-2024]
+-----------------
+* Added swim animations
+* Revised names for all animations
+
+V1.0 [10-02-2024]
+-----------------
+* Released v1.0

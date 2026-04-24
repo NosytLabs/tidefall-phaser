@@ -1,0 +1,54 @@
+Animations 
+=========================
+This pack contains all the base pack animations and the dungeon animations.
+
+The farm pack animations are contained in the farm pack and need to be purchased separately.
+In this pack you will find the items related to this pack to be used in conjunction with the farm pack.
+Ex. (The fishing animation is not included, but the armor items to be used in that animation are)
+
+The mine pack animations are contained in the farm pack and need to be purchased separately.
+In this pack you will find the items related to this pack to be used in conjunction with the mine pack. 
+Ex. (The drill animation is not included, but the armor items to be used in that animation are)
+
+Animations Layers
+=========================
+
+
+The character is based on layers.
+
+The first layer is the character body.
+Everything else is made on top.
+
+The basic is :
+
+Body animation > Weapons > Shoes > Legs > Chest > Hands > Hairstyles > Head armour > Paldrons
+
+Weapons
+=========================
+
+On the super slash animation there is another layer for weapons that should be 
+added on top of the body layer.
+
+Clothes & Body Armor
+=========================
+
+These two should be interchangeable. The order with each is from bottom to top.
+
+All clothing items and armour should be able to be used in any shape or form. You should be 
+able to mix and match everything.
+
+Shoes > Legs > Chest > Hands > Hairstyles
+
+Hairstyles & Head Armo
+=========================
+
+These two should be interchangeable as well. You can use the hair with the head armour, 
+but keep in mind that the hair might go out of the armour. The headband was designed to be 
+Used with all hairstyles.
+
+Hairstyles > Head armor
+
+Paldrons
+=========================
+
+These are new to 2.0 and they are a new layer that can be used as individual armor.

@@ -21,3 +21,13 @@ test-error.png
 
 # Problematic files
 nul
+
+# Build artifacts
+game/
+test-results/
+preview.js
+start-server.js
+AUDIT_REPORT.md
+tidefall-debug.png
+*.lock
+
