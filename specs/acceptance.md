@@ -1,25 +1,25 @@
 # Acceptance Criteria
 
 ## Visual
-- [ ] Game renders at 480x270 internal, crisp pixel art
-- [ ] No solid-color rectangles for ground/water (use sprites/tilesets)
-- [ ] All UI panels have sprite-based borders
-- [ ] Player sprite is clearly readable (~80px on screen)
-- [ ] Day/night cycle changes sky/water colors visibly
-- [ ] At least 5 unique tree types visible
-- [ ] At least 3 boat types on water
-- [ ] Animals (chickens/cows/pigs) in farm zone
-- [ ] Fish shadows swim in water with animation
+- [x] Game renders at 480x270 internal, crisp pixel art
+- [x] No solid-color rectangles for ground/water (use sprites/tilesets)
+- [x] All UI panels have sprite-based borders
+- [x] Player sprite is clearly readable (~80px on screen)
+- [x] Day/night cycle changes sky/water colors visibly
+- [x] At least 5 unique tree types visible
+- [x] At least 3 boat types on water
+- [x] Animals (chickens/cows/pigs) in farm zone
+- [x] Fish shadows swim in water with animation
 
 ## Functional
-- [ ] WASD movement, E interact, I inventory, Space fish
-- [ ] Fishing minigame works end-to-end
-- [ ] Inventory shows fish with rarity-colored names
-- [ ] NPCs spawn and can be talked to
-- [ ] Day/night cycle progresses automatically
-- [ ] Weather changes periodically
-- [ ] Audio manager plays ambient sounds
-- [ ] Settings panel toggles work
+- [x] WASD movement, E interact, I inventory, Space fish
+- [x] Fishing minigame works end-to-end
+- [x] Inventory shows fish with rarity-colored names
+- [x] NPCs spawn and can be talked to
+- [x] Day/night cycle progresses automatically
+- [x] Weather changes periodically
+- [x] Audio manager plays ambient sounds
+- [x] Settings panel toggles work
 
 ## Performance
 - [ ] 60 FPS sustained
