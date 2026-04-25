@@ -1,112 +1,72 @@
 import Phaser from 'phaser';
+import { Player } from '../entities/Player.js';
 import { eventBus } from '../core/EventBus.js';
 import { gameState } from '../core/GameState.js';
-import { EVENTS, GAME } from '../core/Constants.js';
+import { EVENTS, GAME, DEPTH } from '../core/Constants.js';
 
-/**
- * FarmScene - Farming gameplay scene
- * 
- * Features:
- * - Crop planting and harvesting
- * - Farm animals (chickens, cows)
- * - Barn and greenhouse buildings
- * - Day/night cycle effects
- */
 export class FarmScene extends Phaser.Scene {
   constructor() {
     super({ key: 'FarmScene' });
+    this.player = null;
+    this.animals = [];
   }
 
   create() {
-    console.log('[FarmScene] Creating farm...');
-    
-    // Create farm background
     this.createBackground();
-    
-    // Create farm buildings
     this.createBuildings();
-    
-    // Create crops
-    this.createCrops();
-    
-    // Create animals
+    this.player = new Player(this, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     this.createAnimals();
-    
-    // Setup input
     this.setupInput();
-    
-    // Emit scene ready
-    this.events.emit('sceneReady', this);
-    console.log('[FarmScene] Farm creation complete');
   }
 
   createBackground() {
-    // Farm ground
     const graphics = this.add.graphics();
-    graphics.fillStyle(0x5a9a3c, 1); // Grass color
+    graphics.fillStyle(0x5a9a3c, 1);
     graphics.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
-    
-    // Farm plots
-    for (let x = 200; x < 800; x += 150) {
-      for (let y = 200; y < 600; y += 150) {
-        graphics.fillStyle(0x8B4513, 1); // Soil color
-        graphics.fillRect(x, y, 100, 100);
+    for (let x = 100; x < GAME.WIDTH; x += 100) {
+      for (let y = 100; y < GAME.HEIGHT; y += 80) {
+        graphics.fillStyle(0x8B4513, 1);
+        graphics.fillRect(x, y, 40, 40);
       }
     }
   }
 
   createBuildings() {
-    // Barn
     if (this.textures.exists('barn')) {
-      this.add.image(150, 300, 'barn').setScale(2);
+      this.add.image(60, 60, 'barn').setScale(0.8);
     }
-    
-    // Greenhouse
     if (this.textures.exists('greenhouse')) {
-      this.add.image(900, 250, 'greenhouse').setScale(1.5);
+      this.add.image(GAME.WIDTH - 60, 60, 'greenhouse').setScale(0.6);
     }
-  }
-
-  createCrops() {
-    // Placeholder for crops system
-    this.crops = [];
-    console.log('[FarmScene] Crops system initialized');
   }
 
   createAnimals() {
-    // Chickens
-    for (let i = 0; i < 3; i++) {
-      const x = 300 + Math.random() * 200;
-      const y = 400 + Math.random() * 100;
-      if (this.textures.exists('chicken')) {
-        this.add.sprite(x, y, 'chicken').setScale(2);
-      }
-    }
-    
-    // Cows
-    for (let i = 0; i < 2; i++) {
-      const x = 600 + Math.random() * 150;
-      const y = 350 + Math.random() * 100;
-      if (this.textures.exists('cow')) {
-        this.add.sprite(x, y, 'cow').setScale(2);
+    const types = ['chicken_idle', 'cow_idle', 'pig_idle'];
+    for (let i = 0; i < 6; i++) {
+      const t = types[i % 3];
+      if (this.textures.exists(t)) {
+        const a = this.add.sprite(50 + Math.random() * (GAME.WIDTH - 100), 50 + Math.random() * (GAME.HEIGHT - 100), t).setScale(1);
+        this.animals.push(a);
       }
     }
   }
 
   setupInput() {
-    // ESC to return to fishing
-    this.input.keyboard.on('keydown-ESC', () => {
-      this.scene.switch('FishingScene');
-    });
-    
-    // F to return to fishing
-    this.input.keyboard.on('keydown-F', () => {
-      this.scene.switch('FishingScene');
-    });
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+    this.input.keyboard.on('keydown-F', () => this.scene.switch('FishingScene'));
+    this.input.keyboard.on('keydown-ESC', () => this.scene.switch('FishingScene'));
   }
 
-  update() {
-    // Farm update logic
+  update(time, delta) {
+    const input = {
+      up: this.cursors.up.isDown || this.wasd.W.isDown,
+      down: this.cursors.down.isDown || this.wasd.S.isDown,
+      left: this.cursors.left.isDown || this.wasd.A.isDown,
+      right: this.cursors.right.isDown || this.wasd.D.isDown,
+    };
+    this.player.setInputState(input);
+    this.player.update(delta);
   }
 }
 

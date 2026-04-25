@@ -416,8 +416,8 @@ export class NotificationSystem {
    * Check for rare fishing opportunities
    */
   checkRareOpportunities() {
-    const timeOfDay = this.scene.gameState?.timeOfDay;
-    const weather = this.scene.weatherSystem?.currentWeather;
+    const timeOfDay = this.scene?.gameState?.timeOfDay;
+    const weather = this.scene?.weatherSystem?.currentWeather;
     const hour = new Date().getHours();
     
     // Check conditions for rare fish opportunities

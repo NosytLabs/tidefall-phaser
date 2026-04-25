@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import { EVENTS, FISHING, DEPTH, TIME, WEATHER, BAIT, RODS } from '../core/Constants.js';
 import { eventBus } from '../core/EventBus.js';
 
@@ -104,7 +104,7 @@ export class FishingSystem {
       const rodStats = RODS[this.currentRod] || RODS.BASIC;
       
       if (player.y < waterTop - 60) {
-        this.scene.events.emit('showMessage', 'Move closer to water!');
+        this.scene.events.emit(EVENTS.UI_SHOW_MESSAGE, 'Move closer to water!');
         this.log('warn', 'Cast failed - too far from water');
         return;
       }
@@ -203,7 +203,7 @@ export class FishingSystem {
       const waitTime = Math.floor(baseWait * timeMod * baitMod);
       
       this.waitTimer = this.scene.time.delayedCall(waitTime, () => this.triggerBite());
-      this.scene.events.emit('showMessage', 'Waiting for bite...');
+      this.scene.events.emit(EVENTS.UI_SHOW_MESSAGE, 'Waiting for bite...');
       
       this.log('debug', `Bobber spawned, waiting ${waitTime}ms`);
       
@@ -371,7 +371,7 @@ export class FishingSystem {
     const personality = FISHING.PERSONALITIES[this.currentFishPersonality] || FISHING.PERSONALITIES.NORMAL;
     const biteTimeout = personality.biteDuration;
     
-    this.scene.events.emit('showMessage', `!! ${this.currentFishPersonality} FISH !! Press SPACE!`);
+    this.scene.events.emit(EVENTS.UI_SHOW_MESSAGE, `!! ${this.currentFishPersonality} FISH !! Press SPACE!`);
     this.scene.events.emit('biteIndicator', true);
     this.createBiteFlash();
 
@@ -510,7 +510,7 @@ export class FishingSystem {
       this.scene.audioManager?.playSfx('reel', { loop: true });
 
       this.scene.events.emit('biteIndicator', false);
-      this.scene.events.emit('showMessage', 'Reel it in! Press SPACE when pointer is in green!');
+      this.scene.events.emit(EVENTS.UI_SHOW_MESSAGE, 'Reel it in! Press SPACE when pointer is in green!');
 
       // SELF-IMPROVING: Get adaptive difficulty
       const adaptive = this.scene.analytics?.getDifficultyModifier() || {
@@ -788,7 +788,7 @@ export class FishingSystem {
       );
       
       // Emit catch event with all data
-      this.scene.events.emit('fishCaught', this.currentFish, this.currentFishWeight, this.perfectCatch);
+      this.scene.events.emit(EVENTS.UI_SHOW_CATCH, this.currentFish, this.currentFishWeight, this.perfectCatch);
       
       // Track metrics
       this.metrics.catches++;
@@ -871,8 +871,8 @@ export class FishingSystem {
     
     this.metrics.escapes++;
     
-    this.scene.events.emit('showMessage', reason);
-    this.scene.events.emit('fishEscaped');
+    this.scene.events.emit(EVENTS.UI_SHOW_MESSAGE, reason);
+    this.scene.events.emit(EVENTS.FISHING_ESCAPE);
     this.cleanupFishing();
     
     this.log('info', 'Catch failed', { reason, personality: this.currentFishPersonality });

@@ -77,9 +77,9 @@ export class Boat {
    */
   createPassenger() {
     // Random appearance for passenger
-    const skinTones = ASSETS.CHARACTER_SKIN_TONES;
-    const hairStyles = ASSETS.CHARACTER_HAIR_STYLES.slice(0, 4);
-    const hairColors = ASSETS.CHARACTER_HAIR_COLORS;
+    const skinTones = ASSETS.SKIN_TONES;
+    const hairStyles = ASSETS.HAIR_STYLES.slice(0, 4);
+    const hairColors = ASSETS.HAIR_COLORS;
     
     const skin = skinTones[Math.floor(Math.random() * skinTones.length)];
     const hairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
