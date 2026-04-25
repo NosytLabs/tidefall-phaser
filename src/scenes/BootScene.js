@@ -410,6 +410,10 @@ export class BootScene extends Phaser.Scene {
     console.log('[BootScene] Creating animations...');
     this.createAnimations();
     
+    // Hide HTML loading overlay
+    const loading = document.getElementById('loading');
+    if (loading) loading.style.display = 'none';
+    
     eventBus.emit(EVENTS.GAME_START);
     this.scene.start('FishingScene');
   }
@@ -587,12 +591,12 @@ export class BootScene extends Phaser.Scene {
       });
     }
     
-    // Trees - palm sway
+    // Trees - palm sway (palm_tree.png is 240x80 with 3 frames @80x80)
     if (this.textures.exists('palm_tree')) {
       this.anims.create({
         key: 'palm_sway',
         frames: this.anims.generateFrameNumbers('palm_tree', { start: 0, end: 2 }),
-        frameRate: 2,
+        frameRate: 4,
         repeat: -1,
         yoyo: true
       });

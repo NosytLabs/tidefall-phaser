@@ -147,6 +147,12 @@ export class DiveScene extends Phaser.Scene {
   createUI() {
     // Oxygen bar
     this.oxygenBar = this.add.graphics();
+    // Persistent oxygen label (C2 fix: don't recreate every tick)
+    this.oxygenLabel = this.add.text(20, 5, 'OXYGEN', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#ffffff'
+    });
     this.updateOxygenBar();
     
     // Depth indicator
@@ -176,12 +182,8 @@ export class DiveScene extends Phaser.Scene {
     this.oxygenBar.fillStyle(color, 1);
     this.oxygenBar.fillRect(20, 20, 200 * (this.oxygen / 100), 20);
     
-    // Label
-    this.add.text(20, 5, 'OXYGEN', {
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      color: '#ffffff'
-    });
+    // Label updated once, persistent (C2 fix)
+    // OXYGEN label created once in createUI()
   }
 
   setupInput() {

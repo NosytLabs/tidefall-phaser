@@ -41,7 +41,7 @@ const config = {
   parent: 'game-container',
   width: GAME.WIDTH,
   height: GAME.HEIGHT,
-  zoom: GAME.ZOOM,
+  // zoom removed — FIT mode handles scaling
   pixelArt: true,
   backgroundColor: GAME.BACKGROUND_COLOR,
   roundPixels: true, // Critical for pixel art
@@ -155,49 +155,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Responsive canvas scaling
-function updateCanvasScale() {
-  const container = document.getElementById('game-container');
-  if (!container || !window.__game) return;
-  
-  const canvas = container.querySelector('canvas');
-  if (!canvas) return;
-  
-  // Get window dimensions
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-  
-  // Calculate scale to fit while maintaining aspect ratio
-  const targetAspect = GAME.WIDTH / GAME.HEIGHT;
-  const windowAspect = windowWidth / windowHeight;
-  
-  let scale;
-  if (windowAspect > targetAspect) {
-    // Window is wider - fit to height
-    scale = windowHeight / GAME.HEIGHT;
-  } else {
-    // Window is taller - fit to width
-    scale = windowWidth / GAME.WIDTH;
-  }
-  
-  // Apply scale (with max zoom limit)
-  const maxScale = 2;
-  const finalScale = Math.min(scale, maxScale);
-  
-  canvas.style.width = `${GAME.WIDTH * finalScale}px`;
-  canvas.style.height = `${GAME.HEIGHT * finalScale}px`;
-  
-  // Update game scale if needed
-  if (window.__game.scale) {
-    window.__game.scale.setZoom(finalScale);
-  }
-}
-
-// Update scale on resize
-window.addEventListener('resize', updateCanvasScale);
-
-// Initial scale update
-setTimeout(updateCanvasScale, 100);
+// Phaser FIT mode handles all responsive scaling automatically
 
 // Error handling
 window.addEventListener('error', (e) => {

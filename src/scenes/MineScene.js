@@ -88,6 +88,9 @@ export class MineScene extends Phaser.Scene {
     this.physics.add.existing(this.miner);
     this.miner.body.setCollideWorldBounds(true);
     this.miner.body.setDrag(200);
+
+    // Persistent lighting graphics (C1 fix: don't recreate every frame)
+    this.miningGraphics = this.add.graphics().setDepth(100);
   }
 
   createOres() {
@@ -231,17 +234,17 @@ export class MineScene extends Phaser.Scene {
   }
 
   updateLighting() {
-    // Create light around miner
-    const graphics = this.add.graphics();
-    graphics.clear();
-    
+    // Reuse persistent graphics (C1 fix)
+    const g = this.miningGraphics;
+    g.clear();
+
     // Dark everywhere except around miner
-    graphics.fillStyle(0x000000, 0.8);
-    graphics.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
-    
+    g.fillStyle(0x000000, 0.8);
+    g.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
+
     // Light circle around miner
-    graphics.fillStyle(0x000000, 0);
-    graphics.fillCircle(this.miner.x, this.miner.y, this.lightRadius);
+    g.fillStyle(0x000000, 0);
+    g.fillCircle(this.miner.x, this.miner.y, this.lightRadius);
   }
 }
 

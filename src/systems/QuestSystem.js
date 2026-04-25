@@ -1,3 +1,6 @@
+  import { eventBus } from '../core/EventBus.js';
+import { EVENTS } from '../core/Constants.js';
+
 /**
  * QuestSystem - Manages quests from NPCs
  * 
@@ -9,6 +12,7 @@ export class QuestSystem {
     this.activeQuests = [];
     this.completedQuests = [];
     this.availableQuests = this.getDefaultQuests();
+    this.eventBus = eventBus;
   }
 
   getDefaultQuests() {
@@ -132,6 +136,7 @@ export class QuestSystem {
     if (quest) {
       this.availableQuests = this.availableQuests.filter(q => q.id !== questId);
       this.activeQuests.push({ ...quest, acceptedAt: Date.now() });
+      this.eventBus.emit('questAccepted', quest);
       return true;
     }
     return false;
@@ -203,6 +208,7 @@ export class QuestSystem {
     quest.completedAt = Date.now();
     this.completedQuests.push(quest);
     this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
+    this.eventBus.emit('questCompleted', quest);
   }
 
   getActiveQuests() {

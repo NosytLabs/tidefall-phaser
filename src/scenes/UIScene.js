@@ -48,22 +48,26 @@ export class UIScene extends Phaser.Scene {
   create() {
     this.fishingScene = this.scene.get('FishingScene');
     
-    // Wait for FishingScene to be ready
+    // Wait for FishingScene to be ready before setting up UI and event handlers
     if (this.fishingScene?.player) {
+      this.setupEventHandlers();
       this.setupUI();
+      this.setupShortcuts();
     } else {
-      this.fishingScene.events.once('sceneReady', () => this.setupUI());
+      this.fishingScene.events.once('sceneReady', () => {
+        this.setupEventHandlers();
+        this.setupUI();
+        this.setupShortcuts();
+      });
     }
-
-    // Event handlers
-    this.setupEventHandlers();
-    
-    // Keyboard shortcuts
-    this.setupShortcuts();
   }
 
   setupEventHandlers() {
     const fs = this.fishingScene;
+    if (!fs) {
+      console.warn('[UIScene] No fishingScene available for event handlers');
+      return;
+    }
     
     fs.events.on('updateUI', (data) => this.updateStats(data));
     fs.events.on('showMessage', (text) => this.showMessage(text));
@@ -79,6 +83,16 @@ export class UIScene extends Phaser.Scene {
     fs.events.on('openStorage', (data) => this.showStoragePanel(data));
     fs.events.on('openCrafting', () => this.showCraftingPanel());
     fs.events.on('openShop', (npc) => this.showShopPanel(npc));
+    fs.events.on('showQuests', () => this.toggleQuestsPanel());
+    fs.events.on('questAccepted', (quest) => this.showNotification(`Quest Accepted: ${quest.title}`, 'quest'));
+    fs.events.on('questCompleted', (quest) => {
+      this.showNotification(`Quest Complete: ${quest.title} +${quest.reward.gold}g`, 'success');
+      this.showAchievementPopup({
+        icon: '📋',
+        name: 'Quest Complete!',
+        desc: quest.title
+      });
+    });
     
     // EventBus listeners
     eventBus.on(EVENTS.DEBUG_TOGGLE, () => this.toggleDebug());
@@ -99,6 +113,7 @@ export class UIScene extends Phaser.Scene {
     
     // Panels (initially hidden)
     this.createInventoryPanel();
+    this.createQuestsPanel();
     this.createStatsPanel();
     this.createAchievementsPanel();
     this.createMapPanel();
@@ -169,6 +184,7 @@ export class UIScene extends Phaser.Scene {
     
     const actions = [
       { icon: '🎒', key: 'inventory', shortcut: 'I', action: () => this.toggleInventory() },
+      { icon: '📋', key: 'quests', shortcut: 'Q', action: () => this.toggleQuestsPanel() },
       { icon: '📊', key: 'stats', shortcut: 'C', action: () => this.toggleStatsPanel() },
       { icon: '🏆', key: 'achievements', shortcut: 'L', action: () => this.toggleAchievementsPanel() },
       { icon: '🗺️', key: 'map', shortcut: 'TAB', action: () => this.toggleMap() },
@@ -393,6 +409,43 @@ export class UIScene extends Phaser.Scene {
     
     this.achievementsPanel.add([bg, border, this.achievementsTitle, this.achievementsList, closeHint]);
     this.achievementsPanel.setVisible(false);
+  }
+
+  /**
+   * Quest panel with active and available quests
+   */
+  createQuestsPanel() {
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const panelW = 400;
+    const panelH = 380;
+    
+    this.questsPanel = this.add.container(w / 2, h / 2);
+    this.questsPanel.setDepth(300);
+    
+    const bg = this.add.rectangle(0, 0, panelW, panelH, 0x1a1a1a, 0.98).setDepth(300);
+    const border = this.add.rectangle(0, 0, panelW + 4, panelH + 4)
+      .setStrokeStyle(2, 0xaa44aa).setDepth(299);
+    
+    const title = this.add.text(0, -panelH / 2 + 20, '📋 QUESTS', {
+      fontFamily: 'monospace',
+      fontSize: '16px',
+      color: '#aa44aa',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(301);
+    
+    // Quest list container
+    this.questsList = this.add.container(0, 0).setDepth(301);
+    
+    // Close hint
+    const closeHint = this.add.text(0, panelH / 2 - 15, 'Press Q to close', {
+      fontFamily: 'monospace',
+      fontSize: '9px',
+      color: '#666666'
+    }).setOrigin(0.5).setDepth(301);
+    
+    this.questsPanel.add([bg, border, title, this.questsList, closeHint]);
+    this.questsPanel.setVisible(false);
   }
 
   createMapPanel() {
@@ -740,6 +793,13 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
+  toggleQuestsPanel() {
+    this.togglePanel('quests');
+    if (this.questsPanel.visible) {
+      this.updateQuestsDisplay();
+    }
+  }
+
   toggleMap() {
     this.togglePanel('map');
   }
@@ -793,7 +853,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   hideAllPanels() {
-    ['inventory', 'stats', 'achievements', 'map', 'settings', 'crafting', 'storage', 'shop'].forEach(name => {
+    ['inventory', 'quests', 'stats', 'achievements', 'map', 'settings', 'crafting', 'storage', 'shop'].forEach(name => {
       const panel = this[`${name}Panel`];
       if (panel) panel.setVisible(false);
     });
@@ -942,6 +1002,81 @@ export class UIScene extends Phaser.Scene {
       color: '#aaaaaa'
     }).setOrigin(0.5).setDepth(301);
     this.achievementsList.add(progressText);
+  }
+
+  /**
+   * Update quest panel display
+   */
+  updateQuestsDisplay() {
+    if (!this.fishingScene?.questSystem) return;
+    
+    // Clear previous list
+    this.questsList.removeAll(true);
+    
+    let yOffset = -140;
+    
+    // Active quests
+    const active = this.fishingScene.questSystem.getActiveQuests();
+    if (active.length > 0) {
+      const activeTitle = this.add.text(0, yOffset, '▶ ACTIVE QUESTS', {
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        color: '#aa44aa',
+        fontStyle: 'bold'
+      }).setOrigin(0.5).setDepth(301);
+      this.questsList.add(activeTitle);
+      yOffset += 30;
+      
+      active.forEach(quest => {
+        const progress = quest.progress || 0;
+        const req = quest.requirements?.count || quest.requirements?.amount || 1;
+        const line = this.add.text(0, yOffset, 
+          `${quest.title}: ${progress}/${req}`, {
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          color: '#ffffff'
+        }).setOrigin(0.5).setDepth(301);
+        this.questsList.add(line);
+        yOffset += 20;
+      });
+      
+      yOffset += 20;
+    }
+    
+    // Available quests
+    const available = this.fishingScene.questSystem.getAvailableQuests().slice(0, 5);
+    if (available.length > 0) {
+      const availTitle = this.add.text(0, yOffset, '○ AVAILABLE', {
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        color: '#888888',
+        fontStyle: 'bold'
+      }).setOrigin(0.5).setDepth(301);
+      this.questsList.add(availTitle);
+      yOffset += 30;
+      
+      available.forEach(quest => {
+        const line = this.add.text(0, yOffset, 
+          `[${quest.giver}] ${quest.title}`, {
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          color: '#aaaaaa'
+        }).setOrigin(0.5).setDepth(301);
+        this.questsList.add(line);
+        yOffset += 20;
+      });
+    }
+    
+    // No quests
+    if (active.length === 0 && available.length === 0) {
+      const noQuests = this.add.text(0, 0, 'No quests available.\nCheck back later!', {
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        color: '#666666',
+        align: 'center'
+      }).setOrigin(0.5).setDepth(301);
+      this.questsList.add(noQuests);
+    }
   }
 
   /**

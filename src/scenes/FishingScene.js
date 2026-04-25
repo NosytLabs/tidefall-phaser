@@ -241,8 +241,8 @@ export class FishingScene extends Phaser.Scene {
       if (this.textures.exists('trees_pine_growth')) {
         const texture = this.textures.get('trees_pine_growth');
         const frameCount = texture.frameTotal;
-        // Use frame 0 if frame 7 doesn't exist, otherwise use frame 7
-        const frameIndex = frameCount > 7 ? 7 : 0;
+        // trees_pine_growth.png: 352x80 with 5 frames @80x80. Use frame 4 (last, mature tree)
+        const frameIndex = Math.min(4, frameCount - 1);
         
         const scale = 1.0 + (i % 3) * 0.15;
         const yPos = GRASS_TOP + 150 + ((i * 37) % 120);
@@ -763,10 +763,10 @@ export class FishingScene extends Phaser.Scene {
       });
     }
 
-    // Water shimmer
+    // Reduced shimmer from 12 to 4 points for performance
     this.waterShimmerData = [];
     this.waterShimmerGraphics = this.add.graphics().setDepth(DEPTH.WATER_EFFECTS);
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 4; i++) {
       this.waterShimmerData.push({
         baseX: Phaser.Math.Between(10, W - 10),
         baseY: Phaser.Math.Between(waterY + 10, H - 10),
@@ -779,15 +779,15 @@ export class FishingScene extends Phaser.Scene {
     this.waterWavesData = [];
     this.waterWavesGraphics = this.add.graphics().setDepth(DEPTH.WATER_EFFECTS);
     
-    // Create 8 wave lines with varied speeds and amplitudes
-    for (let i = 0; i < 8; i++) {
-      const waveY = waterY + 15 + i * 25;
+    // Reduced from 8 to 3 wave lines for performance
+    for (let i = 0; i < 3; i++) {
+      const waveY = waterY + 20 + i * 40;
       this.waterWavesData.push({
         baseY: waveY,
         speed: 0.3 + (i % 3) * 0.2,
         amplitude: 2 + (i % 4),
         offset: i * 0.8,
-        alpha: 0.1 + (i % 3) * 0.05
+        alpha: 0.08 + (i % 3) * 0.03
       });
     }
     
@@ -802,12 +802,11 @@ export class FishingScene extends Phaser.Scene {
   }
 
   createReflections(W, H, waterY) {
-    // Player reflection (updated each frame)
-    this.playerReflection = this.add.sprite(0, 0, 'player')
-      .setScale(2, -1)
-      .setAlpha(0.2)
+    // Player reflection - mirror the player's container via graphics overlay (no 'player' texture needed)
+    this.playerReflection = this.add.graphics()
       .setDepth(DEPTH.WATER_EFFECTS - 1)
       .setVisible(false);
+    this.playerReflection.setVisible(false);
     
     // Boat reflections
     this.boatReflections = [];
@@ -1188,6 +1187,8 @@ export class FishingScene extends Phaser.Scene {
   switchScene(sceneKey) {
     if (this.fishingSystem.state === 'idle') {
       this.recordInteraction('scene_switch', sceneKey);
+      this.analytics?.recordLocationVisit(sceneKey);
+      this.achievementSystem?.recordLocationVisit(sceneKey);
       this.scene.switch(sceneKey);
     }
   }
@@ -1274,8 +1275,8 @@ export class FishingScene extends Phaser.Scene {
     this.fishingSystem.update(time, delta);
     this.fishManager.update(delta);
     
-    // Throttle world effects
-    if (this.frameCounter % 3 === 0) {
+    // Throttle world effects — every 6 frames to reduce CPU load
+    if (this.frameCounter % 6 === 0) {
       this.boatManager?.update();
       this.updateWorldEffects(time, delta);
       this.updateReflections();
@@ -1527,8 +1528,8 @@ export class FishingScene extends Phaser.Scene {
         this.waterWavesGraphics.lineStyle(2, 0xffffff, w.alpha);
         this.waterWavesGraphics.beginPath();
         
-        // Create sine wave across screen
-        for (let x = 0; x <= W; x += 20) {
+        // Create sine wave across screen — reduced resolution for performance
+        for (let x = 0; x <= W; x += 40) {
           const waveY = y + Math.sin((x / 100) + time * 0.001 + w.offset) * 2;
           if (x === 0) {
             this.waterWavesGraphics.moveTo(x, waveY);
@@ -1542,12 +1543,14 @@ export class FishingScene extends Phaser.Scene {
   }
 
   updateReflections() {
-    // Update player reflection if near water
+    // Update player reflection if near water — draw a simple silhouette via Graphics
     if (this.player.y > this.waterBounds.top - 20) {
-      this.playerReflection.setPosition(this.player.x, this.waterBounds.top + (this.waterBounds.top - this.player.y));
+      const reflY = this.waterBounds.top + (this.waterBounds.top - this.player.y);
+      const reflX = this.player.x;
+      this.playerReflection.clear();
+      this.playerReflection.fillStyle(0x88aacc, 0.2);
+      this.playerReflection.fillEllipse(reflX, reflY, 20, 8);
       this.playerReflection.setVisible(true);
-      this.playerReflection.setTexture(this.player.sprite.texture.key);
-      this.playerReflection.setFrame(this.player.sprite.frame.name);
     } else {
       this.playerReflection.setVisible(false);
     }

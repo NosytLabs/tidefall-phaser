@@ -29,7 +29,7 @@ export class PerformanceMonitor {
     this.qualityLevel = 'high'; // high, medium, low
     this.autoAdjust = true;
     this.consecutiveLowFps = 0;
-    this.lowFpsThreshold = 3; // consecutive seconds before adjusting
+    this.lowFpsConsecutiveThreshold = 3; // consecutive seconds before adjusting
     
     // Debug display
     this.debugText = null;
@@ -105,7 +105,7 @@ export class PerformanceMonitor {
       }
       
       // Auto-adjust quality if consistently low
-      if (this.autoAdjust && this.consecutiveLowFps >= this.lowFpsThreshold) {
+      if (this.autoAdjust && this.consecutiveLowFps >= this.lowFpsConsecutiveThreshold) {
         this.adjustQuality('down');
         this.consecutiveLowFps = 0;
       }
