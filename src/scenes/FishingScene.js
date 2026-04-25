@@ -149,7 +149,7 @@ export class FishingScene extends Phaser.Scene {
         const x = Phaser.Math.Between(0, GAME.WIDTH);
         const y = WORLD.FOREST_BOTTOM - Phaser.Math.Between(0, 20);
         const frame = Phaser.Math.Between(0, 3);
-        const tree = this.add.sprite(x, y, 'trees_pine_growth', frame)
+        const tree = this.add.sprite(x, y, 'trees_pine_growth', frame % 4)
           .setOrigin(0.5, 1)
           .setDepth(DEPTH.TREES_BACK)
           .setScale(SCALE.TREE_PINE)
@@ -542,13 +542,11 @@ export class FishingScene extends Phaser.Scene {
   }
 
   sortDepth() {
-    const sorted = this.depthSortGroup.getChildren()
-      .concat([this.player.container])
-      .concat(this.npcGroup.getChildren())
-      .sort((a, b) => a.y - b.y);
+    const arr = [...this.depthSortGroup.getChildren(), this.player.container, ...this.npcGroup.getChildren()];
+    arr.sort((a, b) => a.y - b.y);
 
     let depth = DEPTH.PLAYER;
-    sorted.forEach(obj => {
+    arr.forEach(obj => {
       if (obj.active || obj.y) {
         obj.setDepth(depth);
         depth += 0.1;

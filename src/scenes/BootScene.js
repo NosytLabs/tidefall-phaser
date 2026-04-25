@@ -163,25 +163,30 @@ export class BootScene extends Phaser.Scene {
       });
     }
 
+    // Fishing action textures — guard against missing frames
+    const actionFps = { throw: 6, catch: 4, reel: 8, pull: 6 };
     ['throw', 'catch', 'reel', 'pull'].forEach(action => {
       const key = `${action}_body_light`;
       if (this.textures.exists(key)) {
-        this.anims.create({
-          key: `${action}_light`,
-          frames: this.anims.generateFrameNumbers(key, { start: 0, end: this.textures.get(key).frameTotal - 1 }),
-          frameRate: ANIMATION[`${action.toUpperCase()}_FPS`] || 8,
-          repeat: action === 'reel' ? -1 : 0
-        });
+        const total = this.textures.get(key).frameTotal;
+        if (total > 0) {
+          this.anims.create({
+            key: `${action}_light`,
+            frames: this.anims.generateFrameNumbers(key, { start: 0, end: total - 1 }),
+            frameRate: actionFps[action] || 8,
+            repeat: action === 'reel' ? -1 : 0
+          });
+        }
       }
     });
 
-    // Shadow sprites: 128x256 texture = 8 cols × 16 rows of 16x16 frames
-    // Use first row (frames 0-7) for a clean swim cycle
+    // Shadow: 128x256 PNG = 8 cols × 16 rows of 16x16 → frames 0-127 total. Use first row (0-7).
+    const shadowFrames = { start: 0, end: 7 };
     ASSETS.SHADOW_SIZES.forEach(size => {
       if (this.textures.exists(`shadow_${size}`)) {
         this.anims.create({
           key: `shadow_swim_${size}`,
-          frames: this.anims.generateFrameNumbers(`shadow_${size}`, { start: 0, end: 7 }),
+          frames: this.anims.generateFrameNumbers(`shadow_${size}`, shadowFrames),
           frameRate: 8, repeat: -1
         });
       }
