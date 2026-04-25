@@ -168,11 +168,11 @@ export class BootScene extends Phaser.Scene {
     ['throw', 'catch', 'reel', 'pull'].forEach(action => {
       const key = `${action}_body_light`;
       if (this.textures.exists(key)) {
-        const total = this.textures.get(key).frameTotal;
-        if (total > 0) {
+        const src = this.textures.get(key).getSourceImage(); const framesX = Math.floor(src.width / 64);
+        if (framesX > 0) {
           this.anims.create({
             key: `${action}_light`,
-            frames: this.anims.generateFrameNumbers(key, { start: 0, end: total - 1 }),
+            frames: this.anims.generateFrameNumbers(key, { start: 0, end: framesX - 1 }),
             frameRate: actionFps[action] || 8,
             repeat: action === 'reel' ? -1 : 0
           });

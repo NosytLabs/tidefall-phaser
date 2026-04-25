@@ -161,6 +161,12 @@ export class Player {
     }
   }
 
+  // Fishing action animations
+  startFishing() { this.playBodyAnim('throw'); }
+  playReel() { this.playBodyAnim('reel'); }
+  playCatch() { this.playBodyAnim('catch'); }
+  stopFishing() { this.showClothing(); }
+
   setDirectionFrame() {
     const dirs = { down: 0, left: 1, right: 2, up: 3 };
     const idx = dirs[this.facing] || 0;

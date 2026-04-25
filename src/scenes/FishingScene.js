@@ -26,6 +26,7 @@ export class FishingScene extends Phaser.Scene {
 
   create() {
     this.fishData = this.cache.json.get('fishData');
+    this.depthSortGroup = this.add.group();
 
     // --- SYSTEMS ---
     this.inventory = new Inventory();
@@ -73,9 +74,6 @@ export class FishingScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.container, true, CAMERA.LERP, CAMERA.LERP);
     this.cameras.main.setDeadzone(CAMERA.DEADZONE_W, CAMERA.DEADZONE_H);
     this.cameras.main.setBounds(0, 0, GAME.WIDTH, GAME.HEIGHT);
-
-    // --- DEPTH SORTING ---
-    this.depthSortGroup = this.add.group();
 
     // --- INPUT ---
     this.setupInput();
