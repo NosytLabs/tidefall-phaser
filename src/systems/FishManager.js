@@ -95,6 +95,9 @@ export class FishManager {
     shadow.setAlpha(0.5);
     shadow.setTint(0x1a2a4a);
 
+    // Start swim animation
+    shadow.play(`shadow_swim_${picked.size}`);
+
     // Fish movement data
     shadow.fishData = {
       size: picked.size,
