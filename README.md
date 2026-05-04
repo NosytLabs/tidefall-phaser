@@ -1,22 +1,57 @@
 # Tidefall
 
-A Phaser 3 fishing game with 44 fish types, day/night cycle, and multiple biomes.
+> A Phaser 3 browser fishing game — 44 fish types, biomes, and a real-time day/night cycle.
 
-## Play
+[![Play Online](https://img.shields.io/badge/Play-Online-6366f1?style=flat-square)](https://nosytlabs.github.io/tidefall-phaser)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Phaser 3](https://img.shields.io/badge/Phaser-3-orange?style=flat-square)](https://phaser.io/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+
+A skill-based fishing game built with [Phaser 3](https://phaser.io/). Cast your line, read the environment, and reel in rare catches across three distinct biomes.
+
+## Features
+
+- **44 fish types** with individual rarity tiers and spawn conditions
+- **3 biomes** — River, Lake, and Sea, each with unique fish populations
+- **Day/night cycle** — time of day affects which fish spawn
+- **Timing-based minigame** — cast and reel with precision for better catches
+- **Inventory system** — track and review your haul mid-session
+
+## Controls
+
+| Key | Action |
+|---|---|
+| `WASD` / Arrow Keys | Move character |
+| `SPACE` | Cast / Reel |
+| `I` | Open inventory |
+
+## Getting Started
+
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Controls
-- WASD / Arrows - Move
-- SPACE - Cast/Reel
-- I - Inventory
+## Build
 
-## Features
-- 44 fish types with rarity system
-- River, Lake, Sea biomes
-- Day/night cycle affecting spawns
-- Timing-based fishing minigame
+```bash
+npm run build
+```
+
+Output goes to `/dist`.
+
+## Tech Stack
+
+- [Phaser 3](https://phaser.io/) — game framework
+- JavaScript (ES6+)
+- Vite (dev server + bundler)
+
+## Contributing
+
+Issues and PRs welcome. Check open issues for ideas.
+
+---
+
+Built by [NosytLabs](https://nosytlabs.com) · NOSYT LLC
