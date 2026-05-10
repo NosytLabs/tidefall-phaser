@@ -55,3 +55,4 @@ Issues and PRs welcome. Check open issues for ideas.
 ---
 
 Built by [NosytLabs](https://nosytlabs.com) · NOSYT LLC
+
