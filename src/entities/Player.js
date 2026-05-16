@@ -67,6 +67,14 @@ export class Player {
       .setOrigin(0.5, 0.75)
       .setScale(SCALE.PLAYER);
 
+    // Sync clothing frame to body animation on every frame tick
+    this.body.on('animationupdate', (_anim, frame) => {
+      const idx = frame.index;
+      [this.pantsSprite, this.shirtSprite, this.hairSprite].forEach(s => {
+        if (s) s.setFrame(idx);
+      });
+    });
+
     // Clothing layers
     this.pantsSprite = this.createLayerSprite(`walk_pants_${this.pants}`);
     this.shirtSprite = this.createLayerSprite(`walk_shirt_${this.shirt}`);
@@ -152,12 +160,14 @@ export class Player {
   }
 
   playBodyAnim(animType) {
-    const key = `${animType}_${this.skin}_${this.facing}`;
+    // Fishing actions have no directional variants — use skin-only key
+    const isFishing = ['throw', 'catch', 'reel', 'pull'].includes(animType);
+    const key = isFishing
+      ? `${animType}_${this.skin}`
+      : `${animType}_${this.skin}_${this.facing}`;
     if (this.scene.anims.exists(key)) {
       this.body.play(key, true);
-      [this.pantsSprite, this.shirtSprite, this.hairSprite].forEach(s => {
-        if (s) s.play(key, true);
-      });
+      // Clothing layers sync via the 'animationupdate' listener on this.body
     }
   }
 
