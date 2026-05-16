@@ -222,7 +222,9 @@ export const EVENTS = {
   UI_TOGGLE_INVENTORY: 'ui:toggleInventory',
   WEATHER_CHANGE: 'world:weatherChange',
   TIME_CHANGE: 'world:timeChange',
-  ACHIEVEMENT_UNLOCKED: 'achievement:unlocked'
+  ACHIEVEMENT_UNLOCKED: 'achievement:unlocked',
+  AUDIO_MUTE: 'audio:mute',
+  AUDIO_UNMUTE: 'audio:unmute'
 };
 
 // Asset collections
