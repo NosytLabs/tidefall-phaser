@@ -69,6 +69,8 @@ export class NotificationSystem {
    * Show a notification
    */
   show(options) {
+    // Accept plain string for convenience
+    if (typeof options === 'string') options = { text: options, duration: 2000 };
     const notification = {
       id: ++this.notificationId,
       type: options.type || 'info',
