@@ -185,7 +185,7 @@ export const ASSETS = {
   SKIN_TONES:   ['light', 'brown', 'dark'],
   HAIR_COLORS:  ['black', 'blonde', 'blue', 'brown_dark', 'brown_light', 'green', 'pink', 'purple', 'red', 'white'],
   SHIRT_COLORS: ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'],
-  PANTS_COLORS: ['black', 'blue_dark', 'blue_light', 'brown', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'],
+  PANTS_COLORS: ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'],
   HAIR_STYLES:  ['short_hair', 'long_hair', 'pony_tail', 'spikey', 'big_bun', 'small_hair'],
   CRITICAL_FISH: ['bass', 'herring', 'cod', 'catfish'],
   BOBBER_COLORS: ['green', 'red', 'yellow'],
