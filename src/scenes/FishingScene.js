@@ -263,33 +263,103 @@ export class FishingScene extends Phaser.Scene {
   }
 
   createAnimals() {
-    // Chickens near coop
+    const CHICKEN_COLORS = ['gray','red','white','yellow'];
+    const PIG_COLORS     = ['gray','pink','yellow'];
+
+    // 5 colored chickens near coop — each random color, wanders
     for (let i = 0; i < 5; i++) {
-      const x = 380 + Phaser.Math.Between(-40, 40);
-      const y = WORLD.GRASS_BOTTOM - 6 + Phaser.Math.Between(-8, 4);
-      if (this.textures.exists('chicken_idle')) {
-        const chick = this.add.sprite(x, y, 'chicken_idle', 0)
-          .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
-        if (this.anims.exists('chicken_walk')) chick.play('chicken_walk');
-        // Wander tween
-        this.tweens.add({
-          targets: chick, x: x + Phaser.Math.Between(-20, 20),
-          duration: Phaser.Math.Between(2000, 4000), repeat: -1, yoyo: true, ease: 'Sine'
-        });
-        this.depthSortGroup.add(chick);
-      }
-    }
-    if (this.textures.exists('cow_idle')) {
-      const cow = this.add.sprite(160, WORLD.GRASS_BOTTOM - 8, 'cow_idle', 0)
+      const color  = CHICKEN_COLORS[i % CHICKEN_COLORS.length];
+      const wkKey  = `chicken_${color}_walk`;
+      const texKey = this.textures.exists(`chicken_${color}_walk`) ? `chicken_${color}_walk`
+                   : this.textures.exists('chicken_walk') ? 'chicken_walk'
+                   : 'chicken_idle';
+      if (!this.textures.exists(texKey)) continue;
+
+      const x = 380 + Phaser.Math.Between(-50, 50);
+      const y = WORLD.GRASS_BOTTOM - 6 + Phaser.Math.Between(-10, 4);
+      const chick = this.add.sprite(x, y, texKey, 0)
         .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
-      if (this.anims.exists('cow_idle')) cow.play('cow_idle');
+
+      // Play walk anim or peck occasionally
+      const walkAnim = this.anims.exists(wkKey) ? wkKey : 'chicken_walk';
+      const peckAnim = `chicken_${color}_peck`;
+      if (this.anims.exists(walkAnim)) chick.play(walkAnim);
+
+      // Wander left/right
+      this.tweens.add({
+        targets: chick,
+        x: x + Phaser.Math.Between(-30, 30),
+        duration: Phaser.Math.Between(1800, 3500),
+        repeat: -1, yoyo: true, ease: 'Sine.easeInOut',
+        onYoyo: () => { chick.flipX = !chick.flipX; }
+      });
+      // Occasional peck
+      this.time.addEvent({
+        delay: Phaser.Math.Between(4000, 8000), loop: true,
+        callback: () => {
+          if (this.anims.exists(peckAnim)) {
+            chick.play(peckAnim);
+            this.time.delayedCall(800, () => {
+              if (this.anims.exists(walkAnim)) chick.play(walkAnim);
+            });
+          }
+        }
+      });
+      this.depthSortGroup.add(chick);
+    }
+
+    // A few chicks near the coop
+    for (let i = 0; i < 3; i++) {
+      const texKey = this.textures.exists('chick_walk') ? 'chick_walk' : 'chick';
+      if (!this.textures.exists(texKey)) continue;
+      const x = 380 + Phaser.Math.Between(-30, 30);
+      const y = WORLD.GRASS_BOTTOM - 3 + Phaser.Math.Between(-4, 2);
+      const baby = this.add.sprite(x, y, texKey, 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL * 0.7);
+      if (this.anims.exists('chick_walk')) baby.play('chick_walk');
+      this.tweens.add({
+        targets: baby, x: x + Phaser.Math.Between(-15, 15),
+        duration: Phaser.Math.Between(1200, 2500), repeat: -1, yoyo: true, ease: 'Sine'
+      });
+      this.depthSortGroup.add(baby);
+    }
+
+    // Cow near the barn — uses dedicated cow animations
+    const cowTex = this.textures.exists('cow_sub_idle') ? 'cow_sub_idle'
+                 : this.textures.exists('cow_idle') ? 'cow_idle' : null;
+    if (cowTex) {
+      const cow = this.add.sprite(160, WORLD.GRASS_BOTTOM - 8, cowTex, 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL * 1.2);
+      const cowAnim = this.anims.exists('cow_idle') ? 'cow_idle' : null;
+      if (cowAnim) cow.play(cowAnim);
       this.depthSortGroup.add(cow);
     }
-    if (this.textures.exists('pig_idle')) {
-      const pig = this.add.sprite(310, WORLD.GRASS_BOTTOM - 6, 'pig_idle', 0)
-        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
-      if (this.anims.exists('pig_idle')) pig.play('pig_idle');
+
+    // Colored pigs near the grain silo
+    PIG_COLORS.forEach((color, idx) => {
+      const wkKey  = `pig_${color}_walk`;
+      const texKey = this.textures.exists(wkKey) ? wkKey
+                   : this.textures.exists('pig_walk') ? 'pig_walk' : null;
+      if (!texKey) return;
+      const x = 250 + idx * 30 + Phaser.Math.Between(-10, 10);
+      const y = WORLD.GRASS_BOTTOM - 5;
+      const pig = this.add.sprite(x, y, texKey, 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL * 1.1);
+      const animKey = this.anims.exists(wkKey) ? wkKey : 'pig_walk';
+      if (this.anims.exists(animKey)) pig.play(animKey);
+      this.tweens.add({
+        targets: pig, x: x + Phaser.Math.Between(-20, 20),
+        duration: Phaser.Math.Between(2000, 4000), repeat: -1, yoyo: true, ease: 'Sine'
+      });
       this.depthSortGroup.add(pig);
+    });
+
+    // Piglet near pigs
+    if (this.textures.exists('piglet_walk')) {
+      const piglet = this.add.sprite(280, WORLD.GRASS_BOTTOM - 4, 'piglet_walk', 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL * 0.65);
+      if (this.anims.exists('piglet_walk')) piglet.play('piglet_walk');
+      this.depthSortGroup.add(piglet);
     }
   }
 
