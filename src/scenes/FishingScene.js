@@ -536,7 +536,12 @@ export class FishingScene extends Phaser.Scene {
 
     // Sync fishing state from FishingSystem
     const fsState = this.fishingSystem?.state;
-    if (fsState === 'waiting') this.fishingState = 'WAITING';
+    if (fsState === 'waiting')  this.fishingState = 'WAITING';
+    if (fsState === 'bite')     this.fishingState = 'BITE';
+    if (fsState === 'minigame') this.fishingState = 'REELING';
+    if (fsState === 'idle' || fsState === 'success' || fsState === 'fail') {
+      if (this.fishingState !== 'IDLE') this.fishingState = 'IDLE';
+    }
 
     this.fishingSystem?.update?.();
 
