@@ -73,10 +73,15 @@ export class FishManager {
     const x = Phaser.Math.Between(bounds.left + 20, bounds.right - 20);
     const y = Phaser.Math.Between(bounds.top + 20, bounds.bottom - 20);
 
+    const scene = this.scene;
+    // Use dedicated fish swim shadows if available, fall back to generic
     const sizes = [
-      { size: 'small', weight: 50, texture: 'shadow_small' },
-      { size: 'medium', weight: 35, texture: 'shadow_medium' },
-      { size: 'big', weight: 15, texture: 'shadow_big' },
+      { size: 'small',  weight: 50, texture: scene.textures.exists('fish_shadow_small')  ? 'fish_shadow_small'  : 'shadow_small',
+        animKey: scene.anims.exists('fish_shadow_swim_small')  ? 'fish_shadow_swim_small'  : 'shadow_swim_small'  },
+      { size: 'medium', weight: 35, texture: scene.textures.exists('fish_shadow_medium') ? 'fish_shadow_medium' : 'shadow_medium',
+        animKey: scene.anims.exists('fish_shadow_swim_medium') ? 'fish_shadow_swim_medium' : 'shadow_swim_medium' },
+      { size: 'big',    weight: 15, texture: scene.textures.exists('fish_shadow_big')    ? 'fish_shadow_big'    : 'shadow_big',
+        animKey: scene.anims.exists('fish_shadow_swim_big')    ? 'fish_shadow_swim_big'    : 'shadow_swim_big'    },
     ];
     const picked = this.weightedRandom(sizes);
 
