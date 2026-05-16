@@ -1,48 +1,66 @@
 import Phaser from 'phaser';
 import { eventBus } from '../core/EventBus.js';
-import { EVENTS, RARITY } from '../core/Constants.js';
+import { EVENTS, RARITY, GAME } from '../core/Constants.js';
+
+const W = GAME.VIEW_WIDTH;  // 480 — UI always at viewport coords
+const H = GAME.HEIGHT;      // 270
 
 export class UIScene extends Phaser.Scene {
   constructor() {
     super({ key: 'UIScene', active: false });
-    this.panels = new Map();
     this._catchCount = 0;
     this._gold = 0;
   }
 
   create() {
-    const w = this.scale.width;
-    const h = this.scale.height;
+    // ── TOP BAR ─────────────────────────────────────────────────────────────
+    // Background strip
+    this.add.rectangle(W / 2, 0, W, 18, 0x000000, 0.75).setOrigin(0.5, 0).setDepth(90).setScrollFactor(0);
 
-    // HUD background
-    this.add.rectangle(w / 2, 10, w, 20, 0x000000, 0.7).setDepth(90);
+    // ⚡ Energy bar
+    this.add.text(4, 4, '⚡', { fontSize: '10px' }).setDepth(100).setScrollFactor(0);
+    this.energyBg  = this.add.rectangle(22, 9, 52, 7, 0x333333).setDepth(100).setScrollFactor(0);
+    this.energyBar = this.add.rectangle(22 - 25, 9, 50, 5, 0x44cc44)
+      .setOrigin(0, 0.5).setDepth(101).setScrollFactor(0);
+    this.add.rectangle(22, 9, 52, 7).setStrokeStyle(1, 0x666666)
+      .setDepth(101).setScrollFactor(0);
 
-    // Energy bar
-    this.energyBg = this.add.rectangle(50, 10, 40, 6, 0x333333).setDepth(100);
-    this.energyBar = this.add.rectangle(31, 10, 36, 4, 0x44cc44)
-      .setOrigin(0, 0.5).setDepth(101);
-    this.add.text(4, 6, '⚡', { fontSize: '8px' }).setDepth(100);
+    // 🐟 Catch counter
+    this.add.text(82, 4, '🐟', { fontSize: '10px' }).setDepth(100).setScrollFactor(0);
+    this.catchesText = this.add.text(96, 5, '0', {
+      fontSize: '10px', fontFamily: 'monospace', color: '#ffffff',
+      stroke: '#000', strokeThickness: 2
+    }).setDepth(100).setScrollFactor(0);
 
-    // Stats
-    this.statsText = this.add.text(w - 4, 6, '', {
-      fontFamily: 'monospace', fontSize: '8px', color: '#ffffff', align: 'right'
-    }).setOrigin(1, 0).setDepth(100);
+    // 💰 Gold
+    this.add.text(120, 4, '💰', { fontSize: '10px' }).setDepth(100).setScrollFactor(0);
+    this.goldText = this.add.text(134, 5, '0', {
+      fontSize: '10px', fontFamily: 'monospace', color: '#ffdd44',
+      stroke: '#000', strokeThickness: 2
+    }).setDepth(100).setScrollFactor(0);
 
-    // Time icon
-    this.timeIcon = this.add.text(w / 2 - 40, 6, '☀️', { fontSize: '10px' }).setDepth(100);
-    this.weatherIcon = this.add.text(w / 2 - 25, 6, '', { fontSize: '10px' }).setDepth(100);
+    // ☀️ Time of day
+    this.timeIcon = this.add.text(W / 2 - 6, 4, '☀️', { fontSize: '11px' })
+      .setDepth(100).setScrollFactor(0);
 
-    // Gold & catches
-    this.add.text(95, 6, '🐟', { fontSize: '8px' }).setDepth(100);
-    this.catchesText = this.add.text(106, 6, '0', { fontSize: '8px' }).setDepth(100);
-    this.add.text(130, 6, '💰', { fontSize: '8px' }).setDepth(100);
-    this.goldText = this.add.text(141, 6, '0', { fontSize: '8px', color: '#ffff44' }).setDepth(100);
+    // 🌦 Weather
+    this.weatherIcon = this.add.text(W / 2 + 12, 4, '', { fontSize: '11px' })
+      .setDepth(100).setScrollFactor(0);
 
-    // Message area
-    this.messageText = this.add.text(w / 2, h - 30, '', {
-      fontFamily: 'monospace', fontSize: '10px', color: '#ffff44',
-      backgroundColor: '#000000cc', padding: { x: 6, y: 4 }
-    }).setOrigin(0.5).setDepth(100).setVisible(false);
+    // Controls hint (bottom)
+    this.add.rectangle(W / 2, H, W, 14, 0x000000, 0.65)
+      .setOrigin(0.5, 1).setDepth(90).setScrollFactor(0);
+    this.add.text(W / 2, H - 11, 'WASD/Arrows: Move  •  SPACE: Fish  •  E: Talk  •  I: Inventory', {
+      fontSize: '7px', fontFamily: 'monospace', color: '#aaaaaa'
+    }).setOrigin(0.5, 0).setDepth(100).setScrollFactor(0);
+
+    // ── MESSAGE AREA ─────────────────────────────────────────────────────────
+    this.msgBg   = this.add.rectangle(W / 2, H - 36, 1, 14, 0x000000, 0.8)
+      .setOrigin(0.5).setDepth(100).setScrollFactor(0).setVisible(false);
+    this.msgText = this.add.text(W / 2, H - 36, '', {
+      fontSize: '10px', fontFamily: 'monospace', color: '#ffff44',
+      stroke: '#000000', strokeThickness: 3
+    }).setOrigin(0.5).setDepth(101).setScrollFactor(0).setVisible(false);
 
     this.setupEvents();
   }
@@ -50,127 +68,117 @@ export class UIScene extends Phaser.Scene {
   setupEvents() {
     eventBus.on(EVENTS.PLAYER_ENERGY_CHANGE, ({ energy }) => {
       const pct = Math.max(0, Math.min(1, energy / 100));
-      this.energyBar.setDisplaySize(36 * pct, 4);
-      this.energyBar.setFillStyle(energy > 50 ? 0x44cc44 : energy > 25 ? 0xcccc44 : 0xcc4444);
+      this.energyBar.setDisplaySize(50 * pct, 5);
+      const col = energy > 50 ? 0x44cc44 : energy > 25 ? 0xcccc44 : 0xcc4444;
+      this.energyBar.setFillStyle(col);
     });
 
-    // FIX: showMessage event sends {text, duration} object — destructure properly
     eventBus.on(EVENTS.UI_SHOW_MESSAGE, (payload) => {
-      const text = typeof payload === 'object' ? payload.text : payload;
-      const duration = typeof payload === 'object' ? (payload.duration ?? 2000) : 2000;
-      this.showMessage(text, duration);
+      const text = typeof payload === 'object' ? payload.text     : payload;
+      const dur  = typeof payload === 'object' ? (payload.duration ?? 2500) : 2500;
+      this.showMessage(text, dur);
     });
 
-    // FIX: UI_SHOW_CATCH params are (fish, weight, perfect) — was incorrectly named (fish, weight, value, isNew)
     eventBus.on(EVENTS.UI_SHOW_CATCH, (fish, weight, perfect) => {
       this.showCatchPanel(fish, weight, perfect);
     });
 
     eventBus.on(EVENTS.UI_TOGGLE_INVENTORY, () => this.toggleInventory());
 
-    // Update HUD catches + gold when a fish is caught
     eventBus.on(EVENTS.FISHING_CATCH, ({ fish, weight }) => {
       this._catchCount++;
-      const value = fish.value || 10;
-      this._gold += value;
+      this._gold += fish?.value || 10;
       if (this.catchesText) this.catchesText.setText(String(this._catchCount));
-      if (this.goldText) this.goldText.setText(String(this._gold));
+      if (this.goldText)    this.goldText.setText(String(this._gold));
     });
 
-    eventBus.on(EVENTS.TIME_CHANGE, ({ icon }) => {
-      if (this.timeIcon) this.timeIcon.setText(icon);
-    });
-
-    eventBus.on(EVENTS.WEATHER_CHANGE, ({ icon }) => {
-      if (this.weatherIcon) this.weatherIcon.setText(icon || '');
-    });
+    eventBus.on(EVENTS.TIME_CHANGE,    ({ icon }) => { if (this.timeIcon)    this.timeIcon.setText(icon); });
+    eventBus.on(EVENTS.WEATHER_CHANGE, ({ icon }) => { if (this.weatherIcon) this.weatherIcon.setText(icon || ''); });
   }
 
-  showMessage(text, duration = 2000) {
+  showMessage(text, duration = 2500) {
     if (!text) return;
-    this.messageText.setText(String(text)).setVisible(true);
-    if (this.msgTimer) this.msgTimer.remove();
-    this.msgTimer = this.time.delayedCall(duration, () => {
-      this.messageText.setVisible(false);
+    this.msgText.setText(String(text)).setVisible(true);
+    const tw = this.msgText.width + 24;
+    this.msgBg.setDisplaySize(tw, 16).setVisible(true);
+    if (this._msgTimer) this._msgTimer.remove();
+    this._msgTimer = this.time.delayedCall(duration, () => {
+      this.msgText.setVisible(false);
+      this.msgBg.setVisible(false);
     });
   }
 
   showCatchPanel(fish, weight, perfect) {
     if (!fish) return;
-    const w = this.scale.width / 2;
-    const h = this.scale.height / 2;
-
+    const cx = W / 2, cy = H / 2;
     if (this.catchPanel) this.catchPanel.destroy();
 
     const colorStr = RARITY[fish.rarity] || '#ffffff';
     const colorInt = parseInt(colorStr.replace('#', ''), 16);
-    const panel = this.add.container(w, h);
+    const panel = this.add.container(cx, cy).setDepth(300).setScrollFactor(0);
 
+    // Panel bg
     panel.add([
-      this.add.rectangle(0, 0, 130, 70, 0x1a1a1a, 0.95).setDepth(200),
-      this.add.rectangle(0, 0, 132, 72).setStrokeStyle(1, colorInt).setDepth(199)
+      this.add.rectangle(0, 0, 140, 76, 0x0a0a18, 0.95).setDepth(200),
+      this.add.rectangle(0, 0, 142, 78).setStrokeStyle(2, colorInt).setDepth(199)
     ]);
+
+    // Rarity glow strip
+    panel.add(this.add.rectangle(0, -33, 140, 10, colorInt, 0.6).setDepth(201));
 
     if (perfect) {
       panel.add(this.add.text(0, -30, '✨ PERFECT!', {
-        fontSize: '8px', color: '#ffff44'
-      }).setOrigin(0.5).setDepth(201));
+        fontSize: '8px', color: '#ffff44', stroke: '#000', strokeThickness: 2
+      }).setOrigin(0.5).setDepth(202));
     }
 
     panel.add([
-      this.add.text(0, -16, fish.name || 'Unknown Fish', {
-        fontSize: '10px', color: colorStr, fontStyle: 'bold'
+      this.add.text(0, -18, fish.name || 'Unknown', {
+        fontSize: '11px', color: colorStr, fontStyle: 'bold',
+        stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(201),
-      this.add.text(0, -2, `${(weight || 0).toFixed(1)} kg`, {
-        fontSize: '8px', color: '#ffffff'
+      this.add.text(0, -3, `${(weight || 0).toFixed(2)} kg`, {
+        fontSize: '9px', color: '#dddddd'
       }).setOrigin(0.5).setDepth(201),
       this.add.text(0, 12, `+${fish.value || 10} 💰`, {
-        fontSize: '8px', color: '#ffdd44'
+        fontSize: '10px', color: '#ffdd44', stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(201),
       this.add.text(0, 26, (fish.rarity || 'common').toUpperCase(), {
-        fontSize: '7px', color: colorStr
+        fontSize: '8px', color: colorStr
       }).setOrigin(0.5).setDepth(201)
     ]);
 
-    this.catchPanel = panel.setDepth(300);
-    this.tweens.add({ targets: panel, scale: { from: 0, to: 1 }, duration: 300, ease: 'Back.out' });
-    this.time.delayedCall(3500, () => {
-      if (panel.active) {
+    this.catchPanel = panel;
+    this.tweens.add({ targets: panel, scale: { from: 0, to: 1 }, duration: 280, ease: 'Back.out' });
+    this.time.delayedCall(3800, () => {
+      if (panel?.active) {
         this.tweens.add({
-          targets: panel, alpha: 0, scale: 0.8, duration: 200,
-          onComplete: () => { if (panel.active) panel.destroy(); }
+          targets: panel, alpha: 0, scale: 0.85, duration: 220,
+          onComplete: () => { if (panel?.active) panel.destroy(); }
         });
       }
     });
   }
 
   toggleInventory() {
-    if (this.inventoryPanel?.visible) {
-      this.inventoryPanel.setVisible(false);
-      return;
-    }
-    this.showInventory();
-  }
+    if (this.inventoryPanel?.visible) { this.inventoryPanel.setVisible(false); return; }
+    if (this.inventoryPanel) { this.inventoryPanel.setVisible(true); return; }
 
-  showInventory() {
-    if (this.inventoryPanel) {
-      this.inventoryPanel.setVisible(true);
-      return;
-    }
-
-    const w = this.scale.width / 2;
-    const h = this.scale.height / 2;
-
-    const panel = this.add.container(w, h);
+    const panel = this.add.container(W / 2, H / 2).setScrollFactor(0).setDepth(300);
     panel.add([
-      this.add.rectangle(0, 0, 200, 120, 0x1a1a1a, 0.98).setDepth(300),
-      this.add.rectangle(0, 0, 202, 122).setStrokeStyle(2, 0x888888).setDepth(299),
-      this.add.text(0, -50, '📦 INVENTORY', {
-        fontSize: '10px', color: '#ffffff', fontStyle: 'bold'
+      this.add.rectangle(0, 0, 220, 130, 0x0a0a18, 0.96).setDepth(300),
+      this.add.rectangle(0, 0, 222, 132).setStrokeStyle(2, 0x4488ff).setDepth(299),
+      this.add.text(0, -52, '📦  INVENTORY', {
+        fontSize: '11px', color: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2
+      }).setOrigin(0.5).setDepth(301),
+      this.add.text(0, -35, 'Fish you\'ve caught will appear here.', {
+        fontSize: '8px', color: '#aaaaaa'
+      }).setOrigin(0.5).setDepth(301),
+      this.add.text(0, 55, 'Press I to close', {
+        fontSize: '8px', color: '#666666'
       }).setOrigin(0.5).setDepth(301)
     ]);
-
-    this.inventoryPanel = panel.setDepth(300).setVisible(true);
+    this.inventoryPanel = panel.setVisible(true);
   }
 
   update() {}
