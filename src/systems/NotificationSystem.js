@@ -40,9 +40,10 @@ export class NotificationSystem {
     
     // Fish caught
     eventBus.on(EVENTS.FISHING_CATCH, (data) => {
-      if (data.rarity === 'legendary') {
+      const rarity = data?.fish?.rarity || data?.rarity;
+      if (rarity === 'legendary') {
         this.showLegendaryAlert(data);
-      } else if (data.rarity === 'epic') {
+      } else if (rarity === 'epic') {
         this.showRareCatch(data);
       }
     });
