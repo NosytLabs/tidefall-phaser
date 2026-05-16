@@ -12,7 +12,7 @@ const FISH_NAMES = [
   'bass','blobfish','butterfly_fish','catfish','char','cherry_salmon',
   'clown_fish','cod','coho_salmon','cow_fish','giant_tevally','golden_trout',
   'guppy','halibut','herring','lion_fish','loach','mackerel','mahi_mahi',
-  'manta_ray','napolean_fish','oarfish','ocean_sunfish',
+  'manta_ray','napolean_fish','neon_tetras','oarfish','ocean_sunfish',
   'parrot_fish','pike','pink_salmon','pirana','plaice','pompano',
   'puffer_fish','rainbow_fish','sea_horse','shark_greatwhite','shark_hammerhead',
   'shark_saw','shark_whale','silver_eel','sockeye_salmon','squid',
@@ -51,7 +51,6 @@ export class BootScene extends Phaser.Scene {
       this.load.image(`fish_${name}`, path);
     });
     
-    this.load.image('fish_neon_tetras', 'assets/sprites/fish/neon_tetras/dark_blue/static_fish.png');
 
     // --- CHARACTER ---
     const ss64 = { frameWidth: 64, frameHeight: 64 };
