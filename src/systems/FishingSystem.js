@@ -500,6 +500,9 @@ export class FishingSystem {
     return 'NORMAL';
   }
 
+  /** Alias called by FishingScene when player presses SPACE during BITE state */
+  triggerHook() { this.startMinigame(); }
+
   startMinigame() {
     try {
       if (this.state !== 'bite') return;
@@ -787,8 +790,10 @@ export class FishingSystem {
         this.currentFish.value * weatherMod * perfectMod * personalityMod
       );
       
-      // Emit catch event with all data
-      this.scene.events.emit(EVENTS.UI_SHOW_CATCH, this.currentFish, this.currentFishWeight, this.perfectCatch);
+      // Emit catch event — use eventBus so UIScene (different Phaser scene) can hear it
+      eventBus.emit(EVENTS.UI_SHOW_CATCH, this.currentFish, this.currentFishWeight, this.perfectCatch);
+      // Also emit FISHING_CATCH so FishingScene can update inventory + achievements
+      this.scene.events.emit(EVENTS.FISHING_CATCH, this.currentFish, this.currentFishWeight, this.perfectCatch);
       
       // Track metrics
       this.metrics.catches++;
@@ -838,7 +843,7 @@ export class FishingSystem {
           duration: 500,
           ease: 'Bounce.easeOut',
           onComplete: () => {
-            this.scene.splashAt(fish.x, fish.y);
+            this.createRippleEffect(fish.x, fish.y);
             fish.destroy();
           }
         });
