@@ -403,6 +403,12 @@ export class FishingScene extends Phaser.Scene {
     });
   }
 
+  /** Current time of day derived from dayPhase — dawn/day/dusk/night */
+  get timeOfDay() {
+    if (this.dayPhase === undefined) return 'day';
+    return TIME.PHASES[Math.floor(this.dayPhase) % TIME.PHASES.length];
+  }
+
   // ============================================================
   // INPUT
   // ============================================================
@@ -492,12 +498,12 @@ export class FishingScene extends Phaser.Scene {
       this.fishingState = 'IDLE';
       this.inventory.addFish(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
-        timeOfDay: this.gameState?.timeOfDay || 'day',
+        timeOfDay: this.timeOfDay,
         perfect
       });
       this.achievementSystem.recordCatch(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
-        timeOfDay: this.gameState?.timeOfDay || 'day',
+        timeOfDay: this.timeOfDay,
         perfect
       });
       if (this.player) this.player.stopFishing?.();
