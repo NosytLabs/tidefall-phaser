@@ -1,11 +1,5 @@
 import Phaser from 'phaser';
-import {
-  ASSETS, ANIMATION, WORLD, COLORS, SCALE, DEPTH
-} from '../core/Constants.js';
-
-/**
- * BootScene — Asset loading & animation creation
- */
+import { ASSETS, ANIMATION, WORLD, COLORS, SCALE, DEPTH } from '../core/Constants.js';
 
 const FISH_NAMES = [
   'bass','blobfish','butterfly_fish','catfish','char','cherry_salmon',
@@ -18,51 +12,51 @@ const FISH_NAMES = [
   'sucker_fish','surgeon_fish','swordfish','whiting_fish'
 ];
 
+// Colored chicken/pig variants to randomize animal appearances
+const CHICKEN_COLORS = ['gray', 'red', 'white', 'yellow'];
+const PIG_COLORS     = ['gray', 'pink', 'yellow'];
+
 export class BootScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'BootScene' });
-  }
+  constructor() { super({ key: 'BootScene' }); }
 
   preload() {
     this.createProgressBar();
 
-    // --- TERRAIN ---
-    this.load.image('terrain_grass', 'assets/sprites/terrain/farm_terrain_correct.png');
-    this.load.image('beach_tileset', 'assets/sprites/tileset/beach_tile_set.png');
-    this.load.image('trees_pine_produce', 'assets/sprites/trees/trees_pine_produce.png');
-    this.load.image('trees_pine_spring_summer', 'assets/sprites/trees/trees_pine_spring_summer.png');
-    this.load.image('trees_pine_spring_autumn', 'assets/sprites/trees/trees_pine_spring_autumn.png');
+    // ── TERRAIN ───────────────────────────────────────────────────────────────
+    this.load.image('terrain_grass',          'assets/sprites/terrain/farm_terrain_correct.png');
+    this.load.image('beach_tileset',          'assets/sprites/tileset/beach_tile_set.png');
+    this.load.image('trees_pine_produce',     'assets/sprites/trees/trees_pine_produce.png');
+    this.load.image('trees_pine_spring_summer','assets/sprites/trees/trees_pine_spring_summer.png');
+    this.load.image('trees_pine_spring_autumn','assets/sprites/trees/trees_pine_spring_autumn.png');
 
-    // --- FISH (44 species) ---
+    // ── FISH (44 species) ────────────────────────────────────────────────────
     FISH_NAMES.forEach(name => {
       let path = `assets/sprites/fish/${name}/static_fish.png`;
       if (name === 'butterfly_fish') path = `assets/sprites/fish/${name}/white_black_fin/static_fish.png`;
-      if (name === 'clown_fish')  path = `assets/sprites/fish/${name}/red/static_fish.png`;
-      if (name === 'guppy')       path = `assets/sprites/fish/${name}/blue/static_fish.png`;
-      if (name === 'loach')       path = `assets/sprites/fish/${name}/silver/static_fish.png`;
-      if (name === 'mackerel')    path = `assets/sprites/fish/${name}/green/static_fish.png`;
-      if (name === 'parrot_fish') path = `assets/sprites/fish/${name}/small/static_fish.png`;
-      if (name === 'pirana')      path = `assets/sprites/fish/${name}/blue/static_fish.png`;
-      if (name === 'swordfish')   path = `assets/sprites/fish/${name}/blue/static_fish.png`;
-      if (name === 'neon_tetras') path = `assets/sprites/fish/${name}/dark_blue/static_fish.png`;
+      if (name === 'clown_fish')     path = `assets/sprites/fish/${name}/red/static_fish.png`;
+      if (name === 'guppy')          path = `assets/sprites/fish/${name}/blue/static_fish.png`;
+      if (name === 'loach')          path = `assets/sprites/fish/${name}/silver/static_fish.png`;
+      if (name === 'mackerel')       path = `assets/sprites/fish/${name}/green/static_fish.png`;
+      if (name === 'parrot_fish')    path = `assets/sprites/fish/${name}/small/static_fish.png`;
+      if (name === 'pirana')         path = `assets/sprites/fish/${name}/blue/static_fish.png`;
+      if (name === 'swordfish')      path = `assets/sprites/fish/${name}/blue/static_fish.png`;
+      if (name === 'neon_tetras')    path = `assets/sprites/fish/${name}/dark_blue/static_fish.png`;
       this.load.image(`fish_${name}`, path);
     });
 
-    // --- CHARACTER: body (all 3 skins × walk + idle + fishing actions) ---
+    // ── CHARACTER: body + clothing ───────────────────────────────────────────
     const ss64 = { frameWidth: 64, frameHeight: 64 };
     ['light', 'brown', 'dark'].forEach(tone => {
       this.load.spritesheet(`walk_body_${tone}`,
         `assets/sprites/character/walk/body/character_walk_body_${tone}.png`, ss64);
       this.load.spritesheet(`idle_body_${tone}`,
         `assets/sprites/character/idle/body/character_idle_body_${tone}.png`, ss64);
-      ['throw', 'catch', 'reel', 'pull'].forEach(action => {
+      ['throw','catch','reel','pull'].forEach(action => {
         this.load.spritesheet(`${action}_body_${tone}`,
           `assets/sprites/character/${action}/body/character_${action}_body_${tone}.png`, ss64);
       });
     });
 
-    // --- CHARACTER: clothing layers (pants, shirts, hair) ---
-    // These MUST be loaded for the player to appear dressed
     ASSETS.PANTS_COLORS.forEach(color => {
       this.load.spritesheet(`walk_pants_${color}`,
         `assets/sprites/character/walk/pants/character_walk_pants_${color}.png`, ss64);
@@ -78,21 +72,39 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    // --- ANIMATIONS ---
+    // ── ANIMATIONS: shadows ───────────────────────────────────────────────────
     const ss16 = { frameWidth: 16, frameHeight: 16 };
+
+    // Generic shadows (still needed for fallback)
     ASSETS.SHADOW_SIZES.forEach(size => {
       this.load.spritesheet(`shadow_${size}`,
         `assets/sprites/animations/shadow/${size}/animation.png`, ss16);
     });
+
+    // Dedicated fish swimming shadows (better quality, used by FishManager)
+    this.load.spritesheet('fish_shadow_small',
+      'assets/sprites/animations/fish_shadow_swim_animations/small_fish/animation.png', ss16);
+    this.load.spritesheet('fish_shadow_medium',
+      'assets/sprites/animations/fish_shadow_swim_animations/medium_fish/animation.png', ss16);
+    this.load.spritesheet('fish_shadow_big',
+      'assets/sprites/animations/fish_shadow_swim_animations/big_fish/animation.png', ss16);
+
+    // ── ANIMATIONS: bobbers ───────────────────────────────────────────────────
     ASSETS.BOBBER_COLORS.forEach(c => {
       this.load.spritesheet(`bobber_${c}`,
         `assets/sprites/animations/bobber/boober_${c}_floating_animation.png`, ss16);
     });
-    this.load.spritesheet('water_ripple',
-      'assets/sprites/animations/water_ripples_animation.png', ss16);
+
+    // Bobber bite — 32x16 frames
     this.load.spritesheet('bobber_bite',
       'assets/sprites/animations/bobber_bite/bobber_fish_bitting_animation.png',
       { frameWidth: 32, frameHeight: 16 });
+
+    // ── ANIMATIONS: water + fish appear/disappear ─────────────────────────────
+    // Water ripple — try both possible paths
+    this.load.spritesheet('water_ripple',
+      'assets/sprites/animations/water_riples_animation/water_ripples_animation.png', ss16);
+
     ASSETS.SHADOW_SIZES.forEach(size => {
       this.load.spritesheet(`fish_appear_${size}`,
         `assets/sprites/animations/fish_appear/${size}_fish_appearing_animation.png`, ss16);
@@ -100,53 +112,88 @@ export class BootScene extends Phaser.Scene {
         `assets/sprites/animations/fish_disappear/${size}_fish_disappearing_animation.png`, ss16);
     });
 
-    // --- BUILDINGS ---
+    // ── BUILDINGS ────────────────────────────────────────────────────────────
     const ss128 = { frameWidth: 128, frameHeight: 128 };
     this.load.image('grain_silo',    'assets/sprites/buildings/grain_silo/grainsilo_premade.png');
     this.load.image('chicken_coop',  'assets/sprites/buildings/chicken_coop/chicken_coop_premade.png');
     this.load.image('barn',          'assets/sprites/buildings/barn_premade.png');
     this.load.image('greenhouse',    'assets/sprites/buildings/greenhouse_premade.png');
-    this.load.spritesheet('fish_market', 'assets/sprites/buildings/fish_market.png', ss128);
+    // fish_market is a single image (8KB) — load as image, not spritesheet
+    this.load.image('fish_market',   'assets/sprites/buildings/fish_market.png');
 
-    // --- BOATS ---
-    this.load.spritesheet('boat_blue',   'assets/sprites/boats/fishing_boat_blue/full_boat.png', ss128);
+    // ── BOATS ─────────────────────────────────────────────────────────────────
+    this.load.spritesheet('boat_blue',   'assets/sprites/boats/fishing_boat_blue/full_boat.png',   ss128);
     this.load.spritesheet('boat_yellow', 'assets/sprites/boats/fishing_boat_yellow/full_boat.png', ss128);
-    this.load.spritesheet('boat_small',  'assets/sprites/boats/small_boat/full_boat.png', ss128);
+    this.load.spritesheet('boat_small',  'assets/sprites/boats/small_boat/full_boat.png',          ss128);
 
-    // --- TREES ---
-    this.load.spritesheet('palm_tree',        'assets/sprites/trees/palm_tree.png',        { frameWidth: 80, frameHeight: 80 });
-    this.load.spritesheet('trees_pine_growth','assets/sprites/trees/trees_pine_growth.png', { frameWidth: 80, frameHeight: 80 });
+    // ── TREES ────────────────────────────────────────────────────────────────
+    this.load.spritesheet('palm_tree',
+      'assets/sprites/trees/palm_tree.png', { frameWidth: 80, frameHeight: 80 });
+    this.load.spritesheet('trees_pine_growth',
+      'assets/sprites/trees/trees_pine_growth.png', { frameWidth: 80, frameHeight: 80 });
     this.load.image('apple_tree', 'assets/sprites/trees/apple_tree.png');
     this.load.image('peach_tree', 'assets/sprites/trees/peach_tree.png');
 
-    // --- ANIMALS ---
-    ASSETS.ANIMAL_TYPES.forEach(animal => {
-      if (animal === 'chick' || animal === 'piglet') {
-        this.load.spritesheet(animal,
-          `assets/sprites/animals/${animal}/${animal}_all_frames.png`,
-          { frameWidth: 16, frameHeight: 16 });
-      } else {
-        this.load.spritesheet(`${animal}_walk`,
-          `assets/sprites/animals/${animal}_walk.png`, { frameWidth: 16, frameHeight: 16 });
-        this.load.spritesheet(`${animal}_idle`,
-          `assets/sprites/animals/${animal}_idle.png`, { frameWidth: 16, frameHeight: 16 });
-      }
-    });
+    // ── ANIMALS: flat root files (confirmed correct paths) ────────────────────
+    // Cow
+    this.load.spritesheet('cow_walk', 'assets/sprites/animals/cow_walk.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('cow_idle', 'assets/sprites/animals/cow_idle.png', { frameWidth: 16, frameHeight: 16 });
+    // Better cow from subdirectory (may have more frames/quality)
+    this.load.spritesheet('cow_sub_walk', 'assets/sprites/animals/cow/cow_walk.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('cow_sub_idle', 'assets/sprites/animals/cow/cow_idle.png', { frameWidth: 16, frameHeight: 16 });
 
+    // Pig variants (pink, gray, yellow for visual diversity)
+    PIG_COLORS.forEach(color => {
+      this.load.spritesheet(`pig_${color}_walk`,
+        `assets/sprites/animals/pig/pig_${color}_walk.png`, { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet(`pig_${color}_idle`,
+        `assets/sprites/animals/pig/pig_${color}_idle.png`, { frameWidth: 16, frameHeight: 16 });
+    });
+    // Root fallbacks
+    this.load.spritesheet('pig_walk', 'assets/sprites/animals/pig_walk.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('pig_idle', 'assets/sprites/animals/pig_idle.png', { frameWidth: 16, frameHeight: 16 });
+
+    // Colored chicken variants (gray, red, white, yellow)
+    CHICKEN_COLORS.forEach(color => {
+      this.load.spritesheet(`chicken_${color}_walk`,
+        `assets/sprites/animals/chicken/chicken_${color}_walk.png`, { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet(`chicken_${color}_idle`,
+        `assets/sprites/animals/chicken/chicken_${color}_idle.png`, { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet(`chicken_${color}_peck`,
+        `assets/sprites/animals/chicken/chicken_${color}_peck.png`, { frameWidth: 16, frameHeight: 16 });
+    });
+    // Root fallbacks
+    this.load.spritesheet('chicken_walk', 'assets/sprites/animals/chicken_walk.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('chicken_idle', 'assets/sprites/animals/chicken_idle.png', { frameWidth: 16, frameHeight: 16 });
+
+    // Chick + piglet
+    this.load.spritesheet('chick',  'assets/sprites/animals/chick/chick_all_frames.png',   { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('chick_walk', 'assets/sprites/animals/chick/chick_walk.png',     { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('chick_peck', 'assets/sprites/animals/chick/chick_peck.png',     { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('piglet',     'assets/sprites/animals/piglet/piglet_all_frames.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('piglet_walk','assets/sprites/animals/piglet/piglet_walk.png',   { frameWidth: 16, frameHeight: 16 });
+
+    // ── UI ────────────────────────────────────────────────────────────────────
     this.load.image('ui_border', 'assets/sprites/ui/fishing_ui_1_all_sprites.png');
-    this.load.json('fishData', 'assets/data/fish.json');
+    this.load.json('fishData',   'assets/data/fish.json');
 
     this.load.on('loaderror', (file) => {
-      console.warn('[BootScene] Failed to load:', file.key);
+      // Silent warn — missing optional asset
+      if (!file.key.startsWith('pig_') && !file.key.startsWith('cow_sub')) {
+        console.warn('[Boot] Failed to load:', file.key, file.src);
+      }
     });
   }
 
   createProgressBar() {
     const w = this.scale.width, h = this.scale.height;
-    const bg  = this.add.rectangle(w / 2, h / 2, 120, 12, 0x222222).setOrigin(0.5);
-    const bar = this.add.rectangle(w / 2 - 58, h / 2 - 5, 116, 10, 0x44cc88).setOrigin(0, 0);
-    this.load.on('progress', v => bar.setDisplaySize(116 * v, 10));
-    this.load.on('complete', () => { bg.destroy(); bar.destroy(); });
+    const bg  = this.add.rectangle(w/2, h/2, 140, 14, 0x111111, 0.9).setOrigin(0.5);
+    const bar = this.add.rectangle(w/2 - 68, h/2, 0, 10, 0x44cc88).setOrigin(0, 0.5);
+    const lbl = this.add.text(w/2, h/2 - 14, 'Loading Tidefall...', {
+      fontSize: '8px', fontFamily: 'monospace', color: '#88ccff'
+    }).setOrigin(0.5);
+    this.load.on('progress', v => bar.setDisplaySize(136 * v, 10));
+    this.load.on('complete', () => { bg.destroy(); bar.destroy(); lbl.destroy(); });
   }
 
   create() {
@@ -154,125 +201,161 @@ export class BootScene extends Phaser.Scene {
     this.scene.start('FishingScene');
   }
 
-  createAnimations() {
-    const dirs = ['down', 'left', 'right', 'up'];
+  /** Auto-detect frame count from spritesheet width */
+  _frames(textureKey, frameW) {
+    if (!this.textures.exists(textureKey)) return 0;
+    const src = this.textures.get(textureKey).getSourceImage();
+    return Math.max(1, Math.floor(src.width / frameW));
+  }
 
-    // --- Walk (all 3 skins, 4 directions, 6 frames each) ---
-    ['light', 'brown', 'dark'].forEach(skin => {
+  createAnimations() {
+    const dirs = ['down','left','right','up'];
+
+    // ── Walk (3 skins × 4 dirs × 6 frames) ──────────────────────────────────
+    ['light','brown','dark'].forEach(skin => {
       if (!this.textures.exists(`walk_body_${skin}`)) return;
       dirs.forEach((dir, i) => {
         this.anims.create({
           key: `walk_${skin}_${dir}`,
-          frames: this.anims.generateFrameNumbers(`walk_body_${skin}`, { start: i * 6, end: i * 6 + 5 }),
+          frames: this.anims.generateFrameNumbers(`walk_body_${skin}`, { start: i*6, end: i*6+5 }),
           frameRate: ANIMATION.WALK_FPS, repeat: -1
         });
       });
     });
 
-    // --- Idle (all 3 skins, 4 directions, 2 frames each) ---
-    ['light', 'brown', 'dark'].forEach(skin => {
+    // ── Idle (3 skins × 4 dirs × 2 frames) ──────────────────────────────────
+    ['light','brown','dark'].forEach(skin => {
       if (!this.textures.exists(`idle_body_${skin}`)) return;
       dirs.forEach((dir, i) => {
         this.anims.create({
           key: `idle_${skin}_${dir}`,
-          frames: this.anims.generateFrameNumbers(`idle_body_${skin}`, { start: i * 2, end: i * 2 + 1 }),
+          frames: this.anims.generateFrameNumbers(`idle_body_${skin}`, { start: i*2, end: i*2+1 }),
           frameRate: ANIMATION.IDLE_FPS, repeat: -1
         });
       });
     });
 
-    // --- Fishing actions (all 3 skins, no direction — single animation per action+skin) ---
-    const actionFps = { throw: 6, catch: 4, reel: 8, pull: 6 };
-    ['throw', 'catch', 'reel', 'pull'].forEach(action => {
-      ['light', 'brown', 'dark'].forEach(skin => {
+    // ── Fishing actions (3 skins, no direction) ──────────────────────────────
+    const actionFps = { throw: ANIMATION.THROW_FPS, catch: ANIMATION.CATCH_FPS,
+                        reel: ANIMATION.REEL_FPS,   pull: ANIMATION.PULL_FPS };
+    ['throw','catch','reel','pull'].forEach(action => {
+      ['light','brown','dark'].forEach(skin => {
         const key = `${action}_body_${skin}`;
-        if (!this.textures.exists(key)) return;
-        const src = this.textures.get(key).getSourceImage();
-        const framesX = Math.floor(src.width / 64);
-        if (framesX < 1) return;
+        const n = this._frames(key, 64);
+        if (!n) return;
         this.anims.create({
           key: `${action}_${skin}`,
-          frames: this.anims.generateFrameNumbers(key, { start: 0, end: framesX - 1 }),
+          frames: this.anims.generateFrameNumbers(key, { start: 0, end: n-1 }),
           frameRate: actionFps[action] || 8,
           repeat: action === 'reel' ? -1 : 0
         });
       });
     });
 
-    // --- Fish shadows ---
-    const shadowFrames = { start: 0, end: 7 };
-    ASSETS.SHADOW_SIZES.forEach(size => {
-      if (this.textures.exists(`shadow_${size}`)) {
+    // ── Fish swim shadows ────────────────────────────────────────────────────
+    // Dedicated fish swim anims (used by FishManager)
+    ['small','medium','big'].forEach(size => {
+      const fkey = `fish_shadow_${size}`;
+      const n = this._frames(fkey, 16);
+      if (n > 0) {
+        this.anims.create({
+          key: `fish_shadow_swim_${size}`,
+          frames: this.anims.generateFrameNumbers(fkey, { start: 0, end: n-1 }),
+          frameRate: 6, repeat: -1
+        });
+      }
+      // Generic fallback
+      const gkey = `shadow_${size}`;
+      const gn = this._frames(gkey, 16);
+      if (gn > 0) {
         this.anims.create({
           key: `shadow_swim_${size}`,
-          frames: this.anims.generateFrameNumbers(`shadow_${size}`, shadowFrames),
+          frames: this.anims.generateFrameNumbers(gkey, { start: 0, end: Math.min(gn-1, 7) }),
           frameRate: 8, repeat: -1
         });
       }
     });
 
-    // --- Bobbers ---
+    // ── Bobbers ──────────────────────────────────────────────────────────────
     ASSETS.BOBBER_COLORS.forEach(c => {
-      if (this.textures.exists(`bobber_${c}`)) {
-        this.anims.create({
-          key: `bobber_float_${c}`,
-          frames: this.anims.generateFrameNumbers(`bobber_${c}`, { start: 0, end: 3 }),
-          frameRate: 4, repeat: -1
-        });
-      }
+      const n = this._frames(`bobber_${c}`, 16);
+      if (!n) return;
+      this.anims.create({
+        key: `bobber_float_${c}`,
+        frames: this.anims.generateFrameNumbers(`bobber_${c}`, { start: 0, end: Math.min(n-1, 7) }),
+        frameRate: 5, repeat: -1
+      });
     });
 
-    // --- Water ripple ---
-    if (this.textures.exists('water_ripple')) {
+    // Bobber bite
+    const bbN = this._frames('bobber_bite', 32);
+    if (bbN > 0) {
+      this.anims.create({
+        key: 'bobber_bite',
+        frames: this.anims.generateFrameNumbers('bobber_bite', { start: 0, end: bbN-1 }),
+        frameRate: 8, repeat: -1
+      });
+    }
+
+    // ── Water ripple ─────────────────────────────────────────────────────────
+    const wrN = this._frames('water_ripple', 16);
+    if (wrN > 0) {
       this.anims.create({
         key: 'ripple',
-        frames: this.anims.generateFrameNumbers('water_ripple', { start: 0, end: 7 }),
+        frames: this.anims.generateFrameNumbers('water_ripple', { start: 0, end: Math.min(wrN-1, 7) }),
         frameRate: 8, repeat: 0
       });
     }
 
-    // --- Palm tree sway ---
-    if (this.textures.exists('palm_tree')) {
+    // ── Palm tree sway ───────────────────────────────────────────────────────
+    const ptN = this._frames('palm_tree', 80);
+    if (ptN >= 2) {
       this.anims.create({
         key: 'palm_sway',
-        frames: this.anims.generateFrameNumbers('palm_tree', { start: 0, end: 2 }),
+        frames: this.anims.generateFrameNumbers('palm_tree', { start: 0, end: ptN-1 }),
         frameRate: 3, repeat: -1, yoyo: true
       });
     }
 
-    // --- Animals (chicken, cow, pig — walk + idle) ---
-    ['chicken', 'cow', 'pig'].forEach(animal => {
-      if (this.textures.exists(`${animal}_walk`)) {
-        const src = this.textures.get(`${animal}_walk`).getSourceImage();
-        const frames = Math.max(1, Math.floor(src.width / 16));
-        this.anims.create({
-          key: `${animal}_walk`,
-          frames: this.anims.generateFrameNumbers(`${animal}_walk`, { start: 0, end: frames - 1 }),
-          frameRate: 6, repeat: -1
-        });
-      }
-      if (this.textures.exists(`${animal}_idle`)) {
-        const src = this.textures.get(`${animal}_idle`).getSourceImage();
-        const frames = Math.max(1, Math.floor(src.width / 16));
-        this.anims.create({
-          key: `${animal}_idle`,
-          frames: this.anims.generateFrameNumbers(`${animal}_idle`, { start: 0, end: Math.min(frames - 1, 3) }),
-          frameRate: 3, repeat: -1
-        });
-      }
-    });
+    // ── Animals ──────────────────────────────────────────────────────────────
+    this._makeAnimalAnims('cow',   'cow_walk',  'cow_idle',  'cow_walk');
+    this._makeAnimalAnims('pig',   'pig_walk',  'pig_idle',  'pig_walk');
+    this._makeAnimalAnims('chick', 'chick_walk','chick_peck','chick_walk');
 
-    // --- Chick / Piglet ---
-    ['chick', 'piglet'].forEach(animal => {
-      if (this.textures.exists(animal)) {
-        const src = this.textures.get(animal).getSourceImage();
-        const frames = Math.max(1, Math.floor(src.width / 16));
-        this.anims.create({
-          key: `${animal}_walk`,
-          frames: this.anims.generateFrameNumbers(animal, { start: 0, end: Math.min(frames - 1, 7) }),
-          frameRate: 6, repeat: -1
-        });
-      }
+    // Colored chickens
+    const CHICKEN_COLORS = ['gray','red','white','yellow'];
+    CHICKEN_COLORS.forEach(color => {
+      const wk = `chicken_${color}_walk`;
+      const ik = `chicken_${color}_idle`;
+      const pk = `chicken_${color}_peck`;
+      const wn = this._frames(wk, 16);
+      const in_ = this._frames(ik, 16);
+      const pn = this._frames(pk, 16);
+      if (wn > 0) this.anims.create({ key: wk, frames: this.anims.generateFrameNumbers(wk, { start: 0, end: wn-1 }), frameRate: 7, repeat: -1 });
+      if (in_ > 0) this.anims.create({ key: ik, frames: this.anims.generateFrameNumbers(ik, { start: 0, end: in_-1 }), frameRate: 3, repeat: -1 });
+      if (pn > 0) this.anims.create({ key: pk, frames: this.anims.generateFrameNumbers(pk, { start: 0, end: pn-1 }), frameRate: 6, repeat: -1 });
     });
+    // Root chicken fallback
+    const cwN = this._frames('chicken_walk', 16);
+    if (cwN > 0) this.anims.create({ key: 'chicken_walk', frames: this.anims.generateFrameNumbers('chicken_walk', { start: 0, end: cwN-1 }), frameRate: 7, repeat: -1 });
+    const ciN = this._frames('chicken_idle', 16);
+    if (ciN > 0) this.anims.create({ key: 'chicken_idle', frames: this.anims.generateFrameNumbers('chicken_idle', { start: 0, end: ciN-1 }), frameRate: 3, repeat: -1 });
+
+    // Colored pigs
+    ['gray','pink','yellow'].forEach(color => {
+      const wk = `pig_${color}_walk`;
+      const ik = `pig_${color}_idle`;
+      const wn = this._frames(wk, 16);
+      const in_ = this._frames(ik, 16);
+      if (wn > 0) this.anims.create({ key: wk, frames: this.anims.generateFrameNumbers(wk, { start: 0, end: wn-1 }), frameRate: 6, repeat: -1 });
+      if (in_ > 0) this.anims.create({ key: ik, frames: this.anims.generateFrameNumbers(ik, { start: 0, end: in_-1 }), frameRate: 3, repeat: -1 });
+    });
+  }
+
+  _makeAnimalAnims(name, walkKey, idleKey, fallbackKey) {
+    const wn = this._frames(walkKey, 16);
+    if (wn > 0) this.anims.create({ key: walkKey, frames: this.anims.generateFrameNumbers(walkKey, { start: 0, end: wn-1 }), frameRate: 6, repeat: -1 });
+    const in_ = this._frames(idleKey, 16);
+    if (in_ > 0) this.anims.create({ key: idleKey, frames: this.anims.generateFrameNumbers(idleKey, { start: 0, end: in_-1 }), frameRate: 3, repeat: -1 });
   }
 }
