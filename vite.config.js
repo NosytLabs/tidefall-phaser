@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   root: '.',
   publicDir: 'public',
-  base: './',
+  base: process.env.NODE_ENV === 'production' ? '/tidefall-phaser/' : './',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
