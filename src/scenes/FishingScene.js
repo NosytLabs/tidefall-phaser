@@ -22,7 +22,12 @@ export class FishingScene extends Phaser.Scene {
   constructor() {
     super({ key: 'FishingScene' });
     this.fishingState = 'IDLE';
-    this.waterBounds = { top: WORLD.WATER_TOP };
+    this.waterBounds = {
+      top: WORLD.WATER_TOP,
+      bottom: WORLD.WATER_BOTTOM,
+      left: 0,
+      right: GAME.WIDTH
+    };
   }
 
   create() {
@@ -45,8 +50,9 @@ export class FishingScene extends Phaser.Scene {
     this.events.on('ui:showMessage', (text) => {
       eventBus.emit(EVENTS.UI_SHOW_MESSAGE, { text, duration: 3000 });
     });
+    // Pass full fish object so UIScene can access .value for gold, .id for sprite, etc.
     this.events.on('fishing:catch', (fish, weight, perfect) => {
-      eventBus.emit(EVENTS.FISHING_CATCH, { fish: { name: fish.name, rarity: fish.rarity }, weight, perfect });
+      eventBus.emit(EVENTS.FISHING_CATCH, { fish, weight, perfect });
     });
     this.events.on('fishing:escape', (reason) => {
       eventBus.emit(EVENTS.FISHING_ESCAPE, { reason });
@@ -482,12 +488,20 @@ export class FishingScene extends Phaser.Scene {
       this.notificationSystem.show('Fish is biting! Press SPACE!', 2000);
     });
 
-    eventBus.on(EVENTS.FISHING_CATCH, ({ fish }) => {
+    eventBus.on(EVENTS.FISHING_CATCH, ({ fish, weight, perfect }) => {
       this.fishingState = 'IDLE';
-      this.inventory.addFish(fish);
-      this.achievementSystem.recordCatch(fish);
+      this.inventory.addFish(fish, weight, {
+        weather: this.weatherSystem?.currentWeather || 'sunny',
+        timeOfDay: this.gameState?.timeOfDay || 'day',
+        perfect
+      });
+      this.achievementSystem.recordCatch(fish, weight, {
+        weather: this.weatherSystem?.currentWeather || 'sunny',
+        timeOfDay: this.gameState?.timeOfDay || 'day',
+        perfect
+      });
       if (this.player) this.player.stopFishing?.();
-      this.notificationSystem.show(`Caught a ${fish.name}!`, 3000);
+      this.notificationSystem?.show?.(`Caught a ${fish.name}!`, 3000);
     });
 
     eventBus.on(EVENTS.FISHING_ESCAPE, () => {
