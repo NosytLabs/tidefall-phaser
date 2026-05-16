@@ -55,7 +55,7 @@ export const FISHING = {
   WAIT_MAX_TIME: 6000,
   BITE_TIMEOUT: 6000,
   MINIGAME_DURATION: 6000,
-  MINIGAME_DECAY: 0.0002,
+  MINIGAME_DECAY: 0.00008, // per-ms decay: bar empties in ~5s at 60fps without any input
   // How much progress bar fills on a successful press
   MINIGAME_SUCCESS_INCREMENT: 0.18,
   // How much progress bar drops on a miss press
