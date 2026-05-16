@@ -55,9 +55,38 @@ export const FISHING = {
   WAIT_MAX_TIME: 6000,
   BITE_TIMEOUT: 6000,
   MINIGAME_DURATION: 6000,
-  MINIGAME_DECAY: 0.002,
-  MINIGAME_SUCCESS: 0.3,
-  MINIGAME_FAIL: 0.08
+  MINIGAME_DECAY: 0.0002,
+  // How much progress bar fills on a successful press
+  MINIGAME_SUCCESS_INCREMENT: 0.18,
+  // How much progress bar drops on a miss press
+  MINIGAME_FAIL_INCREMENT: -0.12,
+  // Legacy aliases kept for any old references
+  MINIGAME_SUCCESS: 0.18,
+  MINIGAME_FAIL: 0.08,
+
+  // Fish personality configs
+  PERSONALITIES: {
+    TIMID: {
+      biteDuration: 3500,   // Escapes fast
+      difficultyMod: 0.8,   // Easier minigame
+      label: 'Timid'
+    },
+    NORMAL: {
+      biteDuration: 5000,
+      difficultyMod: 1.0,
+      label: 'Normal'
+    },
+    AGGRESSIVE: {
+      biteDuration: 7000,   // Stays hooked longer but harder minigame
+      difficultyMod: 1.4,
+      label: 'Aggressive'
+    },
+    LEGENDARY: {
+      biteDuration: 8000,
+      difficultyMod: 1.8,
+      label: 'Legendary'
+    }
+  }
 };
 
 // Energy
@@ -71,8 +100,15 @@ export const ENERGY = {
 
 // Day / Night
 export const TIME = {
-  PHASE_DURATION: 45000, // 45s per phase
-  PHASES: ['dawn', 'day', 'dusk', 'night']
+  PHASE_DURATION: 45000,
+  PHASES: ['dawn', 'day', 'dusk', 'night'],
+  // Per-rarity activity multipliers by time of day (lower = rarer fish more active)
+  FISH_ACTIVITY: {
+    dawn:  { common: 1.2, uncommon: 1.1, rare: 1.0, epic: 0.9, legendary: 0.8 },
+    day:   { common: 1.0, uncommon: 1.0, rare: 1.0, epic: 1.0, legendary: 1.0 },
+    dusk:  { common: 1.1, uncommon: 1.1, rare: 1.1, epic: 1.0, legendary: 0.9 },
+    night: { common: 0.8, uncommon: 0.9, rare: 1.2, epic: 1.3, legendary: 1.5 }
+  }
 };
 
 // Rarity
@@ -129,7 +165,9 @@ export const DEPTH = {
   BOATS: 12,
   PARTICLES: 15,
   WATER_SURFACE: 20,
+  WATER_EFFECTS: 22,      // Fish jumps, splashes, bobber
   UI: 90,
+  UI_FOREGROUND: 95,      // Minigame bar, catch panel
   UI_PANEL: 100,
   UI_OVERLAY: 110
 };
@@ -205,11 +243,11 @@ export const ASSETS = {
 
 // NPC config
 export const NPCS = [
-  { id: 'joe', name: 'Fisherman Joe', x: 60, y: 140, role: 'fisherman' },
-  { id: 'eliza', name: 'Mayor Eliza', x: 200, y: 120, role: 'mayor' },
+  { id: 'joe',   name: 'Fisherman Joe',  x: 60,  y: 140, role: 'fisherman' },
+  { id: 'eliza', name: 'Mayor Eliza',    x: 200, y: 120, role: 'mayor' },
   { id: 'bella', name: 'Merchant Bella', x: 340, y: 120, role: 'merchant' },
-  { id: 'tom', name: 'Farmer Tom', x: 130, y: 110, role: 'farmer' },
-  { id: 'zara', name: 'Angler Zara', x: 280, y: 140, role: 'angler' }
+  { id: 'tom',   name: 'Farmer Tom',     x: 130, y: 110, role: 'farmer' },
+  { id: 'zara',  name: 'Angler Zara',    x: 280, y: 140, role: 'angler' }
 ];
 
 // Camera
@@ -229,29 +267,44 @@ export const PERF = {
   BATCH_SIZE: 2048
 };
 
-// Bait types
+// Bait types — each has a cost, rarity bonus multiplier, and list of rarities it attracts
 export const BAIT = {
-  WORM: { id: 'worm', name: 'Worm', bonus: 0.1, cost: 5 },
-  GRUB: { id: 'grub', name: 'Grub', bonus: 0.15, cost: 10 },
-  MINNOW: { id: 'minnow', name: 'Minnow', bonus: 0.2, cost: 25 },
-  SHRIMP: { id: 'shrimp', name: 'Shrimp', bonus: 0.25, cost: 50 },
-  GOLDEN: { id: 'golden', name: 'Golden Bait', bonus: 0.35, cost: 100 }
+  WORM:   { id: 'worm',   name: 'Worm',        bonus: 0.10, cost: 5,   attract: ['common', 'uncommon'] },
+  GRUB:   { id: 'grub',   name: 'Grub',        bonus: 0.15, cost: 10,  attract: ['common', 'uncommon', 'rare'] },
+  MINNOW: { id: 'minnow', name: 'Minnow',      bonus: 0.20, cost: 25,  attract: ['uncommon', 'rare'] },
+  SHRIMP: { id: 'shrimp', name: 'Shrimp',      bonus: 0.25, cost: 50,  attract: ['rare', 'epic'] },
+  GOLDEN: { id: 'golden', name: 'Golden Bait', bonus: 0.35, cost: 100, attract: ['epic', 'legendary'] }
 };
 
-// Rods
+// Fishing rods
 export const RODS = {
-  BASIC: { id: 'basic', name: 'Basic Rod', power: 1.0, accuracy: 1.0 },
-  FIBERGLASS: { id: 'fiberglass', name: 'Fiberglass', power: 1.2, accuracy: 1.1 },
-  CARBON: { id: 'carbon', name: 'Carbon', power: 1.4, accuracy: 1.2 }
+  BASIC:      { id: 'basic',      name: 'Basic Rod',   power: 1.0, accuracy: 1.0 },
+  FIBERGLASS: { id: 'fiberglass', name: 'Fiberglass',  power: 1.2, accuracy: 1.1 },
+  CARBON:     { id: 'carbon',     name: 'Carbon Rod',  power: 1.4, accuracy: 1.2 }
 };
 
-// Weather
+// Weather — EFFECTS used for cast distance, FISH_MODIFIER for rarity weights
 export const WEATHER = {
   TYPES: ['sunny', 'cloudy', 'rainy', 'stormy'],
+  // Cast distance modifiers per weather type
+  EFFECTS: {
+    sunny:  { castDistanceMod: 1.0 },
+    cloudy: { castDistanceMod: 0.9 },
+    rainy:  { castDistanceMod: 0.8 },
+    stormy: { castDistanceMod: 0.6 }
+  },
+  // Per-rarity catch rate multipliers per weather
+  FISH_MODIFIER: {
+    sunny:  { common: 1.0, uncommon: 0.9, rare: 0.8, epic: 0.7, legendary: 0.4 },
+    cloudy: { common: 1.0, uncommon: 1.0, rare: 1.0, epic: 0.8, legendary: 0.6 },
+    rainy:  { common: 0.9, uncommon: 1.0, rare: 1.2, epic: 1.1, legendary: 0.8 },
+    stormy: { common: 0.7, uncommon: 0.9, rare: 1.0, epic: 1.3, legendary: 1.2 }
+  },
+  // Legacy alias
   MODIFIERS: {
-    sunny: { common: 1.0, rare: 0.8, legendary: 0.4 },
+    sunny:  { common: 1.0, rare: 0.8, legendary: 0.4 },
     cloudy: { common: 1.0, rare: 1.0, legendary: 0.6 },
-    rainy: { common: 0.9, rare: 1.2, legendary: 0.8 },
+    rainy:  { common: 0.9, rare: 1.2, legendary: 0.8 },
     stormy: { common: 0.7, rare: 1.0, legendary: 1.2 }
   }
 };
