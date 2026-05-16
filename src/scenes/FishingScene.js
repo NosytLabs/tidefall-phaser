@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player.js';
-import { NPC, NPCS } from '../entities/NPC.js';
+import { NPC } from '../entities/NPC.js';
 import { FishManager } from '../systems/FishManager.js';
 import { FishingSystem } from '../systems/FishingSystem.js';
 import { Inventory } from '../systems/Inventory.js';
@@ -10,14 +10,10 @@ import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { NotificationSystem } from '../systems/NotificationSystem.js';
 import {
   COLORS, WORLD, DEPTH, SCALE, PHYSICS, ASSETS, GAME, EVENTS,
-  KEYS, ANIMATION, CAMERA
+  KEYS, ANIMATION, CAMERA, NPCS, TIME
 } from '../core/Constants.js';
 import { eventBus } from '../core/EventBus.js';
 
-/**
- * FishingScene — Tidefall main game scene
- * Built layer-by-layer: Sky → Forest → Grass → Sand → Buildings → Animals → Water → Boats → Trees
- */
 export class FishingScene extends Phaser.Scene {
   constructor() {
     super({ key: 'FishingScene' });
@@ -34,23 +30,22 @@ export class FishingScene extends Phaser.Scene {
     this.fishData = this.cache.json.get('fishData');
     this.depthSortGroup = this.add.group();
 
-    // --- SYSTEMS ---
-    this.inventory = new Inventory();
-    this.fishManager = new FishManager(this, this.fishData);
+    // Systems
+    this.inventory    = new Inventory();
+    this.fishManager  = new FishManager(this, this.fishData);
     this.fishingSystem = new FishingSystem(this);
     this.weatherSystem = new WeatherSystem(this);
-    this.audioManager = new AudioManager(this);
-    this.achievementSystem = new AchievementSystem(this);
+    this.audioManager  = new AudioManager(this);
+    this.achievementSystem  = new AchievementSystem(this);
     this.notificationSystem = new NotificationSystem(this);
 
     this.weatherSystem.start();
     this.audioManager.init();
 
-    // Bridge FishingSystem scene.events → eventBus for UI
+    // Event bridges
     this.events.on('ui:showMessage', (text) => {
       eventBus.emit(EVENTS.UI_SHOW_MESSAGE, { text, duration: 3000 });
     });
-    // Pass full fish object so UIScene can access .value for gold, .id for sprite, etc.
     this.events.on('fishing:catch', (fish, weight, perfect) => {
       eventBus.emit(EVENTS.FISHING_CATCH, { fish, weight, perfect });
     });
@@ -58,7 +53,7 @@ export class FishingScene extends Phaser.Scene {
       eventBus.emit(EVENTS.FISHING_ESCAPE, { reason });
     });
 
-    // --- WORLD LAYERS (back → front) ---
+    // World build order: back → front
     this.createSky();
     this.createClouds();
     this.createForest();
@@ -71,10 +66,10 @@ export class FishingScene extends Phaser.Scene {
     this.createBoats();
     this.createTreesForeground();
 
-    // --- PLAYER ---
-    this.player = new Player(this, 100, WORLD.GRASS_BOTTOM - 10);
+    // Player — start near first NPC cluster
+    this.player = new Player(this, 300, WORLD.GRASS_BOTTOM - 12);
 
-    // --- NPCs ---
+    // NPCs
     this.npcGroup = this.add.group();
     this.npcInstances = [];
     NPCS.forEach(cfg => {
@@ -85,213 +80,215 @@ export class FishingScene extends Phaser.Scene {
       this.npcInstances.push(npc);
     });
 
-    // --- FISH SHADOWS ---
+    // Fish shadows
     this.fishManager.spawnFishShadows();
 
-    // --- CAMERA ---
+    // Camera — follows player, scrolls horizontally across 1920px world
     this.cameras.main.startFollow(this.player.container, true, CAMERA.LERP, CAMERA.LERP);
     this.cameras.main.setDeadzone(CAMERA.DEADZONE_W, CAMERA.DEADZONE_H);
     this.cameras.main.setBounds(0, 0, GAME.WIDTH, GAME.HEIGHT);
 
-    // --- INPUT ---
+    // Input
     this.setupInput();
     this.setupEvents();
 
-    // --- DAY/NIGHT OVERLAY ---
+    // Day/night
     this.dayNightOverlay = this.add.rectangle(
-      GAME.WIDTH / 2, GAME.HEIGHT / 2,
-      GAME.WIDTH, GAME.HEIGHT,
-      COLORS.SKY_NIGHT, 0
-    ).setDepth(DEPTH.UI_OVERLAY).setScrollFactor(0)
+      0, 0, GAME.WIDTH, GAME.HEIGHT, COLORS.SKY_NIGHT, 0
+    ).setOrigin(0, 0).setDepth(DEPTH.UI_OVERLAY)
+      .setScrollFactor(0)
+      .setDisplaySize(GAME.WIDTH * 2, GAME.HEIGHT)
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
-
-    this.dayPhase = 0;
+    this.dayPhase = 1; // Start at daytime
     this.dayTimer = this.time.addEvent({
-      delay: 100, loop: true, callback: () => this.updateDayNight()
+      delay: 200, loop: true, callback: () => this.updateDayNight()
     });
 
-    // --- LAUNCH UI ---
+    // Recurring water ripples
+    this.time.addEvent({
+      delay: 800, loop: true, callback: () => this.spawnRipple()
+    });
+
+    // Launch UI overlay
     this.scene.launch('UIScene');
 
-    // --- FPS DEBUG ---
+    // FPS counter (debug)
     this.fpsText = this.add.text(4, 4, '', {
-      fontSize: '8px', fontFamily: 'monospace', color: '#ffffff'
-    }).setDepth(DEPTH.UI).setScrollFactor(0).setAlpha(0.6);
+      fontSize: '10px', fontFamily: 'monospace', color: '#88ff88',
+      stroke: '#000000', strokeThickness: 2
+    }).setDepth(DEPTH.UI).setScrollFactor(0).setAlpha(0.8);
 
-    // --- READY ---
     eventBus.emit(EVENTS.GAME_START);
   }
 
-  // ============================================================
-  // WORLD LAYERS
-  // ============================================================
+  // ── WORLD LAYERS ──────────────────────────────────────────────────────────
 
   createSky() {
     const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = WORLD.SKY_BOTTOM;
+    canvas.width = 4; canvas.height = WORLD.SKY_BOTTOM;
     const ctx = canvas.getContext('2d');
     const grad = ctx.createLinearGradient(0, 0, 0, WORLD.SKY_BOTTOM);
-    grad.addColorStop(0, '#1e3c72');
-    grad.addColorStop(1, '#87ceeb');
+    grad.addColorStop(0.0, '#0d2057');
+    grad.addColorStop(0.4, '#1e4ca8');
+    grad.addColorStop(1.0, '#87ceeb');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1, WORLD.SKY_BOTTOM);
+    ctx.fillRect(0, 0, 4, WORLD.SKY_BOTTOM);
     this.textures.addCanvas('skyGradient', canvas);
 
     this.add.tileSprite(0, 0, GAME.WIDTH, WORLD.SKY_BOTTOM, 'skyGradient')
-      .setOrigin(0, 0)
-      .setDepth(DEPTH.SKY);
+      .setOrigin(0, 0).setDepth(DEPTH.SKY);
   }
 
   createClouds() {
-    for (let i = 0; i < 6; i++) {
+    const cloudCount = 20;
+    for (let i = 0; i < cloudCount; i++) {
       const x = Phaser.Math.Between(0, GAME.WIDTH);
-      const y = Phaser.Math.Between(5, WORLD.SKY_BOTTOM - 10);
-      const cloud = this.add.ellipse(x, y,
-        Phaser.Math.Between(20, 40), Phaser.Math.Between(6, 10),
-        0xffffff, 0.4
-      ).setDepth(DEPTH.CLOUDS).setScale(SCALE.CLOUD);
+      const y = Phaser.Math.Between(4, WORLD.SKY_BOTTOM - 8);
+      const w = Phaser.Math.Between(25, 60);
+      const h = Phaser.Math.Between(6, 14);
+      const cloud = this.add.ellipse(x, y, w, h, 0xffffff,
+        Phaser.Math.FloatBetween(0.3, 0.6))
+        .setDepth(DEPTH.CLOUDS);
 
       this.tweens.add({
         targets: cloud,
-        x: x + 80,
-        duration: Phaser.Math.Between(15000, 30000),
-        repeat: -1,
-        yoyo: true,
-        ease: 'Sine.easeInOut'
+        x: x + Phaser.Math.Between(60, 120),
+        duration: Phaser.Math.Between(20000, 40000),
+        repeat: -1, yoyo: true, ease: 'Sine.easeInOut'
       });
     }
   }
 
   createForest() {
     if (this.textures.exists('trees_pine_growth')) {
-      for (let i = 0; i < 14; i++) {
+      const treeCount = Math.floor(GAME.WIDTH / 30);
+      for (let i = 0; i < treeCount; i++) {
         const x = Phaser.Math.Between(0, GAME.WIDTH);
         const y = WORLD.FOREST_BOTTOM - Phaser.Math.Between(0, 20);
-        const frame = i % 4;
-        const tree = this.add.sprite(x, y, 'trees_pine_growth', frame)
-          .setOrigin(0.5, 1)
-          .setDepth(DEPTH.TREES_BACK)
-          .setScale(SCALE.TREE_PINE)
-          .setAlpha(0.8);
+        const tree = this.add.sprite(x, y, 'trees_pine_growth', i % 4)
+          .setOrigin(0.5, 1).setDepth(DEPTH.TREES_BACK)
+          .setScale(SCALE.TREE_PINE).setAlpha(0.75);
         this.depthSortGroup.add(tree);
       }
     } else {
       this.add.rectangle(
         GAME.WIDTH / 2,
         (WORLD.FOREST_TOP + WORLD.FOREST_BOTTOM) / 2,
-        GAME.WIDTH,
-        WORLD.FOREST_BOTTOM - WORLD.FOREST_TOP,
-        0x0d3808, 1
-      ).setOrigin(0.5).setDepth(DEPTH.TREES_BACK);
+        GAME.WIDTH, WORLD.FOREST_BOTTOM - WORLD.FOREST_TOP,
+        0x0d3808
+      ).setDepth(DEPTH.TREES_BACK);
     }
   }
 
   createGrass() {
     const grassY = (WORLD.GRASS_TOP + WORLD.GRASS_BOTTOM) / 2;
     const grassH = WORLD.GRASS_BOTTOM - WORLD.GRASS_TOP;
-
     if (this.textures.exists('terrain_grass')) {
       this.add.tileSprite(GAME.WIDTH / 2, grassY, GAME.WIDTH, grassH, 'terrain_grass')
-        .setOrigin(0.5)
-        .setDepth(DEPTH.GROUND);
+        .setOrigin(0.5).setDepth(DEPTH.GROUND);
     } else {
       this.add.rectangle(GAME.WIDTH / 2, grassY, GAME.WIDTH, grassH, COLORS.GRASS)
-        .setOrigin(0.5)
         .setDepth(DEPTH.GROUND);
     }
-
+    // Detail grass blades
     const gfx = this.add.graphics().setDepth(DEPTH.DECORATION);
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 300; i++) {
       const x = Phaser.Math.Between(0, GAME.WIDTH);
-      const y = Phaser.Math.Between(WORLD.GRASS_TOP + 5, WORLD.GRASS_BOTTOM - 5);
-      gfx.fillStyle(0x3a7a22, 0.8);
-      gfx.fillRect(x, y, 2, 3);
-      gfx.fillStyle(0x2a6a15, 0.6);
-      gfx.fillRect(x + 2, y + 1, 1, 2);
+      const y = Phaser.Math.Between(WORLD.GRASS_TOP + 4, WORLD.GRASS_BOTTOM - 4);
+      gfx.fillStyle(0x3a7a22, 0.7);
+      gfx.fillRect(x, y, 2, 4);
     }
-
-    const flowerColors = [0xff6b8a, 0xffdd44, 0x99bbff, 0xff88aa];
-    for (let i = 0; i < 15; i++) {
+    // Flowers
+    const fc = [0xff6b8a, 0xffdd44, 0x99bbff, 0xffaa44, 0xccffaa];
+    for (let i = 0; i < 80; i++) {
       const x = Phaser.Math.Between(0, GAME.WIDTH);
-      const y = Phaser.Math.Between(WORLD.GRASS_TOP + 10, WORLD.GRASS_BOTTOM - 10);
-      gfx.fillStyle(flowerColors[i % 4], 1);
+      const y = Phaser.Math.Between(WORLD.GRASS_TOP + 8, WORLD.GRASS_BOTTOM - 8);
+      gfx.fillStyle(fc[i % fc.length], 1);
       gfx.fillRect(x, y, 2, 2);
+      gfx.fillStyle(fc[(i + 2) % fc.length], 0.5);
+      gfx.fillRect(x - 1, y + 2, 4, 1);
     }
   }
 
   createSand() {
     const sandY = (WORLD.SAND_TOP + WORLD.SAND_BOTTOM) / 2;
     const sandH = WORLD.SAND_BOTTOM - WORLD.SAND_TOP;
-
     if (this.textures.exists('beach_tileset')) {
       this.add.tileSprite(GAME.WIDTH / 2, sandY, GAME.WIDTH, sandH, 'beach_tileset')
-        .setOrigin(0.5)
-        .setDepth(DEPTH.GROUND);
+        .setOrigin(0.5).setDepth(DEPTH.GROUND);
     } else {
       this.add.rectangle(GAME.WIDTH / 2, sandY, GAME.WIDTH, sandH, COLORS.SAND)
-        .setOrigin(0.5)
         .setDepth(DEPTH.GROUND);
+    }
+    // Pebbles
+    const gfx = this.add.graphics().setDepth(DEPTH.DECORATION);
+    for (let i = 0; i < 120; i++) {
+      const x = Phaser.Math.Between(0, GAME.WIDTH);
+      const y = Phaser.Math.Between(WORLD.SAND_TOP + 2, WORLD.SAND_BOTTOM - 2);
+      gfx.fillStyle(0xc8b060, 0.6);
+      gfx.fillEllipse(x, y, Phaser.Math.Between(2, 4), 2);
     }
   }
 
   createFences() {
     const gfx = this.add.graphics().setDepth(DEPTH.DECORATION);
-    for (let x = 10; x < GAME.WIDTH; x += 20) {
-      gfx.fillStyle(0x8b6a3a, 1);
-      gfx.fillRect(x, WORLD.SAND_TOP - 2, 1, 6);
-      gfx.fillStyle(0x7a5a2a, 1);
-      gfx.fillRect(x, WORLD.SAND_TOP - 4, 18, 1);
+    // Only fence in the farm area (x=0 to x=700)
+    for (let x = 10; x < 700; x += 22) {
+      gfx.fillStyle(0x8b6a3a);
+      gfx.fillRect(x, WORLD.SAND_TOP - 2, 2, 8);
+      gfx.fillStyle(0x7a5a2a);
+      gfx.fillRect(x, WORLD.SAND_TOP - 4, 20, 2);
     }
   }
 
   createBuildings() {
+    // Spread across 1920px world: farm left, market center, greenhouse right
     const buildings = [
-      { key: 'barn', x: 80, y: WORLD.GRASS_BOTTOM - 5, scale: SCALE.BUILDING },
-      { key: 'chicken_coop', x: 160, y: WORLD.GRASS_BOTTOM - 5, scale: SCALE.BUILDING * 0.6 },
-      { key: 'greenhouse', x: 380, y: WORLD.GRASS_BOTTOM - 5, scale: SCALE.BUILDING * 0.8 },
-      { key: 'fish_market', x: 300, y: WORLD.GRASS_BOTTOM - 5, scale: SCALE.BUILDING, frame: 0 },
-      { key: 'grain_silo', x: 50, y: WORLD.GRASS_TOP + 30, scale: SCALE.BUILDING * 0.6 },
+      // Farm cluster (x=50–450)
+      { key: 'barn',        x: 130, y: WORLD.GRASS_BOTTOM, scale: SCALE.BUILDING },
+      { key: 'grain_silo',  x: 260, y: WORLD.GRASS_BOTTOM, scale: SCALE.BUILDING * 0.85 },
+      { key: 'chicken_coop',x: 380, y: WORLD.GRASS_BOTTOM, scale: SCALE.BUILDING * 0.7 },
+      // Market / village center (x=700–1200)
+      { key: 'fish_market', x: 850, y: WORLD.GRASS_BOTTOM, scale: SCALE.BUILDING, frame: 0 },
+      // Greenhouse east (x=1300–1700)
+      { key: 'greenhouse',  x: 1400, y: WORLD.GRASS_BOTTOM, scale: SCALE.BUILDING * 0.9 },
     ];
 
     buildings.forEach(cfg => {
       if (!this.textures.exists(cfg.key)) return;
-      const spr = this.add.sprite(cfg.x, cfg.y, cfg.key, cfg.frame || 0)
-        .setOrigin(0.5, 1)
-        .setDepth(DEPTH.BUILDINGS)
-        .setScale(cfg.scale);
+      const spr = this.add.sprite(cfg.x, cfg.y, cfg.key, cfg.frame ?? 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.BUILDINGS).setScale(cfg.scale);
       this.depthSortGroup.add(spr);
     });
   }
 
   createAnimals() {
     // Chickens near coop
-    for (let i = 0; i < 4; i++) {
-      const x = 170 + Phaser.Math.Between(-15, 15);
-      const y = WORLD.GRASS_BOTTOM - 5 + Phaser.Math.Between(-10, 5);
+    for (let i = 0; i < 5; i++) {
+      const x = 380 + Phaser.Math.Between(-40, 40);
+      const y = WORLD.GRASS_BOTTOM - 6 + Phaser.Math.Between(-8, 4);
       if (this.textures.exists('chicken_idle')) {
         const chick = this.add.sprite(x, y, 'chicken_idle', 0)
-          .setOrigin(0.5, 1)
-          .setDepth(DEPTH.NPC)
-          .setScale(SCALE.ANIMAL);
+          .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
         if (this.anims.exists('chicken_walk')) chick.play('chicken_walk');
+        // Wander tween
+        this.tweens.add({
+          targets: chick, x: x + Phaser.Math.Between(-20, 20),
+          duration: Phaser.Math.Between(2000, 4000), repeat: -1, yoyo: true, ease: 'Sine'
+        });
         this.depthSortGroup.add(chick);
       }
     }
-
     if (this.textures.exists('cow_idle')) {
-      const cow = this.add.sprite(90, WORLD.GRASS_BOTTOM - 5, 'cow_idle', 0)
-        .setOrigin(0.5, 1)
-        .setDepth(DEPTH.NPC)
-        .setScale(SCALE.ANIMAL);
+      const cow = this.add.sprite(160, WORLD.GRASS_BOTTOM - 8, 'cow_idle', 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
+      if (this.anims.exists('cow_idle')) cow.play('cow_idle');
       this.depthSortGroup.add(cow);
     }
-
     if (this.textures.exists('pig_idle')) {
-      const pig = this.add.sprite(220, WORLD.GRASS_BOTTOM - 5, 'pig_idle', 0)
-        .setOrigin(0.5, 1)
-        .setDepth(DEPTH.NPC)
-        .setScale(SCALE.ANIMAL);
+      const pig = this.add.sprite(310, WORLD.GRASS_BOTTOM - 6, 'pig_idle', 0)
+        .setOrigin(0.5, 1).setDepth(DEPTH.NPC).setScale(SCALE.ANIMAL);
+      if (this.anims.exists('pig_idle')) pig.play('pig_idle');
       this.depthSortGroup.add(pig);
     }
   }
@@ -300,118 +297,117 @@ export class FishingScene extends Phaser.Scene {
     const waterY = (WORLD.WATER_TOP + WORLD.WATER_BOTTOM) / 2;
     const waterH = WORLD.WATER_BOTTOM - WORLD.WATER_TOP;
 
-    if (this.textures.exists('water_tileset')) {
-      this.add.tileSprite(GAME.WIDTH / 2, waterY, GAME.WIDTH, waterH, 'water_tileset')
-        .setOrigin(0.5)
-        .setDepth(DEPTH.GROUND);
-    } else {
-      this.add.rectangle(GAME.WIDTH / 2, waterY, GAME.WIDTH, waterH, COLORS.WATER)
-        .setOrigin(0.5)
-        .setDepth(DEPTH.GROUND);
-    }
+    // Base water
+    this.add.rectangle(GAME.WIDTH / 2, waterY, GAME.WIDTH, waterH, COLORS.WATER)
+      .setOrigin(0.5).setDepth(DEPTH.GROUND);
 
+    // Deep area
     this.add.rectangle(
       GAME.WIDTH / 2,
-      WORLD.WATER_TOP + (WORLD.WATER_BOTTOM - WORLD.WATER_TOP) * 0.6,
-      GAME.WIDTH,
-      (WORLD.WATER_BOTTOM - WORLD.WATER_TOP) * 0.4,
+      WORLD.WATER_TOP + waterH * 0.55,
+      GAME.WIDTH, waterH * 0.45,
       COLORS.WATER_DEEP
-    ).setOrigin(0.5).setDepth(DEPTH.GROUND - 0.1);
+    ).setDepth(DEPTH.GROUND - 0.1);
 
-    const gfx = this.add.graphics().setDepth(DEPTH.WATER_SURFACE);
-    for (let x = 0; x < GAME.WIDTH; x += 8) {
-      const waveY = WORLD.WATER_TOP + Math.sin(x * 0.15) * 2;
-      gfx.fillStyle(COLORS.WATER_FOAM, 0.25);
-      gfx.fillRect(x, waveY, 4, 1);
+    // Animated wave strip at waterline
+    this.waveGfx = this.add.graphics().setDepth(DEPTH.WATER_SURFACE);
+    this.waveOffset = 0;
+    this.drawWaves();
+
+    // Shoreline highlight
+    const shore = this.add.graphics().setDepth(DEPTH.WATER_SURFACE + 1);
+    shore.fillStyle(0xffffff, 0.18);
+    shore.fillRect(0, WORLD.WATER_TOP, GAME.WIDTH, 3);
+  }
+
+  drawWaves() {
+    if (!this.waveGfx) return;
+    this.waveGfx.clear();
+    this.waveGfx.fillStyle(0xffffff, 0.2);
+    for (let x = 0; x < GAME.WIDTH; x += 6) {
+      const y = WORLD.WATER_TOP + 4 + Math.sin((x + this.waveOffset) * 0.06) * 2.5;
+      this.waveGfx.fillRect(x, y, 4, 1);
     }
-
-    if (this.anims.exists('ripple')) {
-      for (let i = 0; i < 8; i++) {
-        const rx = Phaser.Math.Between(20, GAME.WIDTH - 20);
-        const ry = Phaser.Math.Between(WORLD.WATER_TOP + 10, WORLD.WATER_BOTTOM - 20);
-        const ripple = this.add.sprite(rx, ry, 'water_ripple', 0)
-          .setDepth(DEPTH.WATER_SURFACE)
-          .play('ripple');
-        ripple.on('animationcomplete', () => ripple.destroy());
-      }
+    this.waveGfx.fillStyle(0xffffff, 0.08);
+    for (let x = 0; x < GAME.WIDTH; x += 10) {
+      const y = WORLD.WATER_TOP + 10 + Math.sin((x + this.waveOffset * 0.7) * 0.04) * 3;
+      this.waveGfx.fillRect(x, y, 6, 1);
     }
   }
 
+  spawnRipple() {
+    if (!this.anims.exists('ripple')) return;
+    const rx = Phaser.Math.Between(20, GAME.WIDTH - 20);
+    const ry = Phaser.Math.Between(WORLD.WATER_TOP + 8, WORLD.WATER_BOTTOM - 30);
+    const r = this.add.sprite(rx, ry, 'water_ripple', 0)
+      .setDepth(DEPTH.WATER_SURFACE + 2).play('ripple');
+    r.on('animationcomplete', () => r.destroy());
+  }
+
   createBoats() {
-    const boatCfgs = [
-      { type: 'boat_blue', x: 60, y: WORLD.WATER_TOP + 20 },
-      { type: 'boat_yellow', x: 150, y: WORLD.WATER_TOP + 35 },
-      { type: 'boat_small', x: 240, y: WORLD.WATER_TOP + 25 },
-      { type: 'boat_blue', x: 340, y: WORLD.WATER_TOP + 30 },
-      { type: 'boat_small', x: 420, y: WORLD.WATER_TOP + 22 },
+    // Spread boats across full width, stay above sortDepth by using fixed BOATS depth
+    const boatDefs = [
+      { type: 'boat_blue',   x: 200,  y: WORLD.WATER_TOP + 22 },
+      { type: 'boat_yellow', x: 480,  y: WORLD.WATER_TOP + 38 },
+      { type: 'boat_small',  x: 720,  y: WORLD.WATER_TOP + 28 },
+      { type: 'boat_blue',   x: 1050, y: WORLD.WATER_TOP + 32 },
+      { type: 'boat_small',  x: 1280, y: WORLD.WATER_TOP + 24 },
+      { type: 'boat_yellow', x: 1550, y: WORLD.WATER_TOP + 35 },
+      { type: 'boat_small',  x: 1780, y: WORLD.WATER_TOP + 26 },
     ];
 
-    boatCfgs.forEach(cfg => {
+    boatDefs.forEach(cfg => {
       if (!this.textures.exists(cfg.type)) return;
-
       const boat = this.add.sprite(cfg.x, cfg.y, cfg.type, 0)
-        .setOrigin(0.5, 0.5)
-        .setDepth(DEPTH.BOATS)
-        .setScale(SCALE.BOAT);
-
+        .setOrigin(0.5, 0.5).setDepth(DEPTH.BOATS).setScale(SCALE.BOAT);
+      // Bob
       this.tweens.add({
-        targets: boat,
-        y: cfg.y + Phaser.Math.Between(1, 3),
-        duration: Phaser.Math.Between(1500, 2500),
-        repeat: -1,
-        yoyo: true,
-        ease: 'Sine.easeInOut'
+        targets: boat, y: cfg.y + Phaser.Math.Between(2, 4),
+        duration: Phaser.Math.Between(1400, 2600), repeat: -1, yoyo: true, ease: 'Sine.easeInOut'
       });
-
+      // Rock
       this.tweens.add({
-        targets: boat,
-        angle: Phaser.Math.Between(-2, 2),
-        duration: Phaser.Math.Between(2000, 3500),
-        repeat: -1,
-        yoyo: true,
-        ease: 'Sine.easeInOut'
+        targets: boat, angle: Phaser.Math.Between(-3, 3),
+        duration: Phaser.Math.Between(2000, 4000), repeat: -1, yoyo: true, ease: 'Sine.easeInOut'
       });
     });
   }
 
   createTreesForeground() {
-    for (let i = 0; i < 6; i++) {
-      const x = 30 + i * 80 + Phaser.Math.Between(-10, 10);
-      const y = WORLD.SAND_TOP + 8;
+    // Palm trees along the beach edge across full width
+    const palmSpacing = 120;
+    for (let x = 40; x < GAME.WIDTH; x += palmSpacing + Phaser.Math.Between(-20, 20)) {
       if (this.textures.exists('palm_tree')) {
-        const tree = this.add.sprite(x, y, 'palm_tree', 0)
-          .setOrigin(0.5, 1)
-          .setDepth(DEPTH.TREES_FORE)
-          .setScale(SCALE.TREE_PALM);
+        const tree = this.add.sprite(x, WORLD.SAND_TOP + 6, 'palm_tree', 0)
+          .setOrigin(0.5, 1).setDepth(DEPTH.TREES_FORE).setScale(SCALE.TREE_PALM);
         if (this.anims.exists('palm_sway')) tree.play('palm_sway');
         this.depthSortGroup.add(tree);
       }
     }
 
+    // Apple and peach trees in the farm area and greenhouse area
     const fruitTrees = [
-      { key: 'apple_tree', x: 120, y: WORLD.GRASS_TOP + 10 },
-      { key: 'peach_tree', x: 360, y: WORLD.GRASS_TOP + 15 },
+      { key: 'apple_tree', x: 100,  y: WORLD.GRASS_TOP + 12 },
+      { key: 'peach_tree', x: 220,  y: WORLD.GRASS_TOP + 14 },
+      { key: 'apple_tree', x: 1350, y: WORLD.GRASS_TOP + 10 },
+      { key: 'peach_tree', x: 1480, y: WORLD.GRASS_TOP + 15 },
     ];
     fruitTrees.forEach(t => {
-      if (this.textures.exists(t.key)) {
-        const tree = this.add.sprite(t.x, t.y, t.key)
-          .setOrigin(0.5, 1)
-          .setDepth(DEPTH.TREES_FORE)
-          .setScale(SCALE.TREE_OAK * 0.6);
-        this.depthSortGroup.add(tree);
-      }
+      if (!this.textures.exists(t.key)) return;
+      const tree = this.add.sprite(t.x, t.y, t.key)
+        .setOrigin(0.5, 1).setDepth(DEPTH.TREES_FORE)
+        .setScale(SCALE.TREE_OAK * 0.65);
+      this.depthSortGroup.add(tree);
     });
   }
 
-  /** Current time of day derived from dayPhase — dawn/day/dusk/night */
+  /** Current time of day from dayPhase */
   get timeOfDay() {
     if (this.dayPhase === undefined) return 'day';
     return TIME.PHASES[Math.floor(this.dayPhase) % TIME.PHASES.length];
   }
 
-  // ============================================================
-  // INPUT
-  // ============================================================
+  // ── INPUT ────────────────────────────────────────────────────────────────
 
   setupInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -424,15 +420,14 @@ export class FishingScene extends Phaser.Scene {
     this.keySpace = this.input.keyboard.addKey('SPACE');
 
     this.keySpace.on('down', () => this.handleFishingInput());
-    this.keyE.on('down', () => this.handleInteract());
-    this.keyI.on('down', () => this.handleInventory());
+    this.keyE.on('down',     () => this.handleInteract());
+    this.keyI.on('down',     () => this.handleInventory());
   }
 
   handleFishingInput() {
     const fs = this.fishingSystem;
     if (!fs) return;
-
-    const atWater = this.player.y >= WORLD.WATER_TOP;
+    const atWater = this.player.y >= WORLD.SAND_TOP;
 
     switch (this.fishingState) {
       case 'IDLE':
@@ -441,11 +436,10 @@ export class FishingScene extends Phaser.Scene {
           this.fishingState = 'CASTING';
           this.player.startFishing();
         } else {
-          this.notificationSystem.show('Move closer to the water!', 2000);
+          this.notify('Walk to the water to fish! (press S / ↓)', 2500);
         }
         break;
       case 'WAITING':
-        // Waiting for bite — nothing to do on space
         break;
       case 'BITE':
         fs.triggerHook?.();
@@ -462,99 +456,89 @@ export class FishingScene extends Phaser.Scene {
     if (nearby) {
       const name = nearby.getData('name');
       const role = nearby.getData('role') || 'villager';
-      eventBus.emit(EVENTS.UI_SHOW_MESSAGE, { text: `${name}: Hello, ${role}!`, duration: 3000 });
+      this.notify(`${name}: "Welcome, angler!"`, 3000);
     }
   }
 
-  handleInventory() {
-    eventBus.emit(EVENTS.UI_TOGGLE_INVENTORY);
+  handleInventory() { eventBus.emit(EVENTS.UI_TOGGLE_INVENTORY); }
+
+  /** Convenience wrapper — notification system accepts both string and object */
+  notify(text, duration = 2000) {
+    eventBus.emit(EVENTS.UI_SHOW_MESSAGE, { text, duration });
   }
 
   findNearbyNPC() {
-    let closest = null;
-    let closestDist = 40;
+    let closest = null, closestDist = 48;
     this.npcGroup.getChildren().forEach(npc => {
-      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, npc.x, npc.y);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closest = npc;
-      }
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, npc.x, npc.y);
+      if (d < closestDist) { closestDist = d; closest = npc; }
     });
     return closest;
   }
 
-  // ============================================================
-  // EVENTS
-  // ============================================================
+  // ── EVENTS ──────────────────────────────────────────────────────────────
 
   setupEvents() {
     eventBus.on(EVENTS.FISHING_BITE, () => {
       this.fishingState = 'BITE';
-      if (this.player) this.player.playReel?.();
-      this.notificationSystem.show('Fish is biting! Press SPACE!', 2000);
+      this.player.playReel?.();
+      this.notify('Fish on! Press SPACE to hook it! 🎣', 2500);
     });
 
     eventBus.on(EVENTS.FISHING_CATCH, ({ fish, weight, perfect }) => {
       this.fishingState = 'IDLE';
       this.inventory.addFish(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
-        timeOfDay: this.timeOfDay,
-        perfect
+        timeOfDay: this.timeOfDay, perfect
       });
       this.achievementSystem.recordCatch(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
-        timeOfDay: this.timeOfDay,
-        perfect
+        timeOfDay: this.timeOfDay, perfect
       });
-      if (this.player) this.player.stopFishing?.();
-      this.notificationSystem?.show?.(`Caught a ${fish.name}!`, 3000);
+      this.player.stopFishing?.();
+      const stars = perfect ? ' ⭐ PERFECT!' : '';
+      this.notify(`Caught ${fish.name}! ${weight?.toFixed(1)}kg${stars}`, 3500);
     });
 
     eventBus.on(EVENTS.FISHING_ESCAPE, () => {
       this.fishingState = 'IDLE';
-      if (this.player) this.player.stopFishing?.();
-      this.notificationSystem.show('It got away...', 2000);
+      this.player.stopFishing?.();
+      this.notify('It got away! Try again.', 2000);
     });
 
     eventBus.on(EVENTS.GAME_PAUSE, () => this.scene.pause());
   }
 
-  // ============================================================
-  // DAY/NIGHT
-  // ============================================================
+  // ── DAY/NIGHT ────────────────────────────────────────────────────────────
 
   updateDayNight() {
     const phases = [
-      { color: COLORS.SKY_DAWN, alpha: 0.15 },
-      { color: COLORS.SKY_DAY, alpha: 0.0 },
-      { color: COLORS.SKY_DUSK, alpha: 0.2 },
-      { color: COLORS.SKY_NIGHT, alpha: 0.35 }
+      { color: COLORS.SKY_DAWN,  alpha: 0.12 },
+      { color: COLORS.SKY_DAY,   alpha: 0.0  },
+      { color: COLORS.SKY_DUSK,  alpha: 0.18 },
+      { color: COLORS.SKY_NIGHT, alpha: 0.32 }
     ];
-
     const idx = Math.floor(this.dayPhase) % phases.length;
-    const phase = phases[idx];
-    this.dayNightOverlay.setFillStyle(phase.color, phase.alpha);
-    this.dayPhase += 0.0005;
-
-    const icons = ['🌅', '☀️', '🌆', '🌙'];
+    const { color, alpha } = phases[idx];
+    this.dayNightOverlay.setFillStyle(color, alpha);
+    this.dayPhase += 0.0004;
+    const icons = ['🌅','☀️','🌆','🌙'];
     eventBus.emit(EVENTS.TIME_CHANGE, { icon: icons[idx] });
   }
 
-  // ============================================================
-  // UPDATE
-  // ============================================================
+  // ── UPDATE ──────────────────────────────────────────────────────────────
 
   update(time, delta) {
     const input = {
-      up: this.cursors.up.isDown || this.keyW.isDown,
-      down: this.cursors.down.isDown || this.keyS.isDown,
-      left: this.cursors.left.isDown || this.keyA.isDown,
+      up:    this.cursors.up.isDown    || this.keyW.isDown,
+      down:  this.cursors.down.isDown  || this.keyS.isDown,
+      left:  this.cursors.left.isDown  || this.keyA.isDown,
       right: this.cursors.right.isDown || this.keyD.isDown
     };
     this.player.setInputState(input);
     this.player.update(delta);
 
-    // Sync fishing state from FishingSystem
+    // Sync fishing state
     const fsState = this.fishingSystem?.state;
     if (fsState === 'waiting')  this.fishingState = 'WAITING';
     if (fsState === 'bite')     this.fishingState = 'BITE';
@@ -565,15 +549,22 @@ export class FishingScene extends Phaser.Scene {
 
     this.fishingSystem?.update?.();
 
+    // Animate waves
+    this.waveOffset += delta * 0.04;
+    this.drawWaves();
+
+    // NPC updates
+    this.npcInstances?.forEach(n => n.update?.());
+
     this.sortDepth();
 
-    // FPS debug
     if (this.fpsText) {
-      this.fpsText.setText(`FPS: ${Math.round(this.game.loop.actualFps)}`);
+      this.fpsText.setText(`FPS:${Math.round(this.game.loop.actualFps)}`);
     }
   }
 
   sortDepth() {
+    // Sort character-layer objects by Y (depth-sort), leaving boats/terrain at fixed depths
     const arr = [
       ...this.depthSortGroup.getChildren(),
       this.player.container,
@@ -581,13 +572,7 @@ export class FishingScene extends Phaser.Scene {
     ].filter(Boolean);
 
     arr.sort((a, b) => a.y - b.y);
-
-    let depth = DEPTH.PLAYER;
-    arr.forEach(obj => {
-      if (obj.active) {
-        obj.setDepth(depth);
-        depth += 0.1;
-      }
-    });
+    let d = DEPTH.PLAYER;
+    arr.forEach(obj => { if (obj.active) { obj.setDepth(d); d += 0.1; } });
   }
 }
