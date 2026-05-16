@@ -22,12 +22,19 @@ export class AchievementSystem {
       totalCatches: 0,
       totalValue: 0,
       rareCatches: 0,
+      epicCatches: 0,
+      legendaryCatches: 0,
       perfectCatches: 0,
       fishByType: new Map(),
       locationsVisited: new Set(),
       questsCompleted: 0,
       tradesMade: 0,
       craftingDone: 0,
+      dawnCatches: 0,
+      duskCatches: 0,
+      nightCatches: 0,
+      rainyCatches: 0,
+      stormyCatches: 0,
     };
     
     this.initAchievements();
@@ -281,6 +288,50 @@ export class AchievementSystem {
 
     console.log(`[AchievementSystem] Unlocked: ${achievement.name}`);
   }
+
+  /**
+   * Record a fish catch and check achievements.
+   * Called by FishingScene after every successful catch.
+   */
+  recordCatch(fish, weight = 0, metadata = {}) {
+    if (!fish) return;
+
+    const rarity = fish.rarity || 'common';
+    const value = fish.value || 0;
+
+    // Update core stats
+    this.stats.totalCatches++;
+    this.stats.totalValue += value;
+
+    // Track by rarity
+    if (rarity === 'rare' || rarity === 'epic' || rarity === 'legendary') {
+      this.stats.rareCatches++;
+    }
+    if (rarity === 'epic') this.stats.epicCatches++;
+    if (rarity === 'legendary') this.stats.legendaryCatches++;
+
+    // Track unique species
+    const speciesKey = fish.id || fish.name;
+    if (speciesKey) this.stats.fishByType.set(speciesKey, (this.stats.fishByType.get(speciesKey) || 0) + 1);
+
+    // Perfect catch
+    if (metadata.perfect) this.stats.perfectCatches++;
+
+    // Time of day
+    const tod = metadata.timeOfDay || 'day';
+    if (tod === 'dawn') this.stats.dawnCatches++;
+    if (tod === 'dusk') this.stats.duskCatches++;
+    if (tod === 'night') this.stats.nightCatches++;
+
+    // Weather
+    const weather = metadata.weather || 'sunny';
+    if (weather === 'rainy') this.stats.rainyCatches++;
+    if (weather === 'stormy') this.stats.stormyCatches++;
+
+    // Check all achievements
+    this.checkAchievements();
+  }
+
 
   /**
    * Get all achievements
