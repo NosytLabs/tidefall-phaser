@@ -14,7 +14,7 @@ test.describe('Tidefall Game Integration Tests', () => {
       }
     });
 
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
     await page.waitForTimeout(3000);
 
     // Check canvas exists
@@ -31,7 +31,7 @@ test.describe('Tidefall Game Integration Tests', () => {
   });
 
   test('inventory toggle with I key', async ({ page }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
     await page.waitForTimeout(2000);
 
     // Press I to open inventory
@@ -43,7 +43,7 @@ test.describe('Tidefall Game Integration Tests', () => {
   });
 
   test('quest system initializes', async ({ page }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
     await page.waitForTimeout(2000);
 
     const hasQuestSystem = await page.evaluate(() => {
@@ -54,7 +54,7 @@ test.describe('Tidefall Game Integration Tests', () => {
   });
 
   test('day/night cycle placeholder', async ({ page }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3010');
     await page.waitForTimeout(1000);
 
     const dayNightWorking = await page.evaluate(() => true);

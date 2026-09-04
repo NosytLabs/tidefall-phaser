@@ -5,15 +5,15 @@ export default defineConfig({
   testMatch: 'e2e.spec.js',
   timeout: 30000,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3010',
     headless: true,
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
   },
   reporter: [['list']],
   webServer: {
-    command: 'npx vite --port 3000',
-    port: 3000,
+    command: 'npx vite --port 3010',
+    port: 3010,
     reuseExistingServer: true,
     timeout: 30000,
     stdout: 'ignore',
