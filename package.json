@@ -14,7 +14,7 @@
     "test:all": "npm test && npm run test:e2e:ci"
   },
   "dependencies": {
-    "phaser": "^3.85.0"
+    "phaser": "^4.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
