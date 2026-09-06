@@ -20,3 +20,7 @@ npm run test:e2e:ci  # Playwright E2E (must pass)
 - Pixel art mode ON (pixelArt: true, roundPixels: true, antialias: false).
 - All UI panels must use sprite-based borders not rectangles.
 - Maintain 60 FPS target.
+
+## Asset layout
+- Runtime assets live in `public/assets/sprites/` (curated Smallburg subset).
+- Local vendor packs may exist under `game/` (~46MB). That directory is gitignored and must not be committed; BootScene loads only from `public/assets/sprites/`.

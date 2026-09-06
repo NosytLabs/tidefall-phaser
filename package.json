@@ -2,7 +2,7 @@
   "name": "tidefall-phaser",
   "version": "1.0.0",
   "type": "module",
-  "description": "Tidefall - 2D top-down fishing game built with Phaser 3",
+  "description": "Tidefall - 2D top-down fishing game built with Phaser 4",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
