@@ -172,6 +172,7 @@ export const EVENTS = {
   FISHING_CATCH: 'fishing:catch',
   FISHING_ESCAPE: 'fishing:escape',
   UI_SHOW_MESSAGE: 'ui:showMessage',
+  UI_GOLD_SYNC: 'ui:goldSync',
   UI_SHOW_CATCH: 'ui:showCatch',
   UI_TOGGLE_INVENTORY: 'ui:toggleInventory',
   WEATHER_CHANGE: 'world:weatherChange',

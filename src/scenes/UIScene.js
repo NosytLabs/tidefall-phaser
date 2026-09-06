@@ -79,6 +79,14 @@ export class UIScene extends Phaser.Scene {
       this.showMessage(text, dur);
     });
 
+    eventBus.on(EVENTS.UI_GOLD_SYNC, (payload) => {
+      const gold = typeof payload === 'object' ? payload.gold : payload;
+      if (typeof gold === 'number') {
+        this._gold = gold;
+        if (this.goldText) this.goldText.setText(String(this._gold));
+      }
+    });
+
     eventBus.on(EVENTS.UI_SHOW_CATCH, (fish, weight, perfect) => {
       this.showCatchPanel(fish, weight, perfect);
     });

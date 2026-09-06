@@ -13,6 +13,7 @@ import {
   KEYS, ANIMATION, CAMERA, NPCS, TIME
 } from '../core/Constants.js';
 import { eventBus } from '../core/EventBus.js';
+import { gameState } from '../core/GameState.js';
 
 export class FishingScene extends Phaser.Scene {
   constructor() {
@@ -500,11 +501,12 @@ export class FishingScene extends Phaser.Scene {
     this.keyN.on('down',     () => this.enterLocation('MineScene', 'mine'));
     this.keyG.on('down',     () => this.enterLocation('FarmScene', 'farm'));
 
-    // Re-show HUD when returning from Dive/Mine/Farm
+    // Re-show HUD when returning from Dive/Mine/Farm; sync gold earned off-shore
     this.events.on('wake', () => {
       if (this.scene.isSleeping('UIScene') || !this.scene.isActive('UIScene')) {
         this.scene.wake('UIScene');
       }
+      eventBus.emit(EVENTS.UI_GOLD_SYNC, { gold: gameState.game.gold });
     });
   }
 
