@@ -488,10 +488,42 @@ export class FishingScene extends Phaser.Scene {
     this.keyE = this.input.keyboard.addKey('E');
     this.keyI = this.input.keyboard.addKey('I');
     this.keySpace = this.input.keyboard.addKey('SPACE');
+    // Location entry — V/N/G avoid WASD + Farm exit F / Mine exit M conflicts
+    this.keyV = this.input.keyboard.addKey('V');
+    this.keyN = this.input.keyboard.addKey('N');
+    this.keyG = this.input.keyboard.addKey('G');
 
     this.keySpace.on('down', () => this.handleFishingInput());
     this.keyE.on('down',     () => this.handleInteract());
     this.keyI.on('down',     () => this.handleInventory());
+    this.keyV.on('down',     () => this.enterLocation('DiveScene', 'dive'));
+    this.keyN.on('down',     () => this.enterLocation('MineScene', 'mine'));
+    this.keyG.on('down',     () => this.enterLocation('FarmScene', 'farm'));
+
+    // Re-show HUD when returning from Dive/Mine/Farm
+    this.events.on('wake', () => {
+      if (this.scene.isSleeping('UIScene') || !this.scene.isActive('UIScene')) {
+        this.scene.wake('UIScene');
+      }
+    });
+  }
+
+  /**
+   * Switch into a side location scene. Marks exploration achievements.
+   * V=Dive, N=Mine, G=Farm (D reserved for move; F/M reserved for those scenes' exits).
+   */
+  enterLocation(sceneKey, locationId) {
+    if (!this.scene.isActive()) return;
+    // Don't yank the player mid-cast
+    if (this.fishingState && this.fishingState !== 'IDLE') {
+      this.notify('Finish fishing before exploring!', 2000);
+      return;
+    }
+    if (this.achievementSystem) {
+      this.achievementSystem.updateStats('location_visited', { location: locationId });
+    }
+    if (this.scene.isActive('UIScene')) this.scene.sleep('UIScene');
+    this.scene.switch(sceneKey);
   }
 
   handleFishingInput() {

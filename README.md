@@ -23,7 +23,13 @@ A skill-based fishing game built with [Phaser 4](https://phaser.io/). Cast your 
 |---|---|
 | `WASD` / Arrow Keys | Move character |
 | `SPACE` | Cast / Reel |
+| `E` | Talk to nearby NPC |
 | `I` | Open inventory |
+| `V` | Enter Dive scene (exit with `Q`) |
+| `N` | Enter Mine scene (exit with `M`) |
+| `G` | Enter Farm scene (exit with `F` / `ESC`) |
+
+> Location hotkeys use `V`/`N`/`G` so they do not fight WASD movement or the Mine/Farm exit keys (`M`/`F`).
 
 ## Getting Started
 
