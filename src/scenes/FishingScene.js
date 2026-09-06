@@ -33,6 +33,7 @@ export class FishingScene extends Phaser.Scene {
 
     // Systems
     this.inventory    = new Inventory();
+    this.registry.set('inventory', this.inventory);
     this.fishManager  = new FishManager(this, this.fishData);
     this.fishingSystem = new FishingSystem(this);
     this.weatherSystem = new WeatherSystem(this);
@@ -603,6 +604,8 @@ export class FishingScene extends Phaser.Scene {
           : 'Could not store that catch.', 3500);
         return;
       }
+      // Keep GameState encyclopedia/save inventory in sync with Inventory system
+      gameState.addFish(fish, weight);
       this.achievementSystem.recordCatch(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
         timeOfDay: this.timeOfDay, perfect
