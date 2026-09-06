@@ -33,6 +33,7 @@ export class FishingScene extends Phaser.Scene {
 
     // Systems
     this.inventory    = new Inventory();
+    this.registry.set('inventory', this.inventory);
     this.fishManager  = new FishManager(this, this.fishData);
     this.fishingSystem = new FishingSystem(this);
     this.weatherSystem = new WeatherSystem(this);
@@ -494,9 +495,10 @@ export class FishingScene extends Phaser.Scene {
     this.keyN = this.input.keyboard.addKey('N');
     this.keyG = this.input.keyboard.addKey('G');
 
-    this.keySpace.on('down', () => this.handleFishingInput());
-    this.keyE.on('down',     () => this.handleInteract());
-    this.keyI.on('down',     () => this.handleInventory());
+    // Shared KeyboardPlugin fires even while this scene sleeps — gate on isActive
+    this.keySpace.on('down', () => { if (this.scene.isActive()) this.handleFishingInput(); });
+    this.keyE.on('down',     () => { if (this.scene.isActive()) this.handleInteract(); });
+    this.keyI.on('down',     () => { if (this.scene.isActive()) this.handleInventory(); });
     this.keyV.on('down',     () => this.enterLocation('DiveScene', 'dive'));
     this.keyN.on('down',     () => this.enterLocation('MineScene', 'mine'));
     this.keyG.on('down',     () => this.enterLocation('FarmScene', 'farm'));
@@ -591,15 +593,23 @@ export class FishingScene extends Phaser.Scene {
 
     eventBus.on(EVENTS.FISHING_CATCH, ({ fish, weight, perfect }) => {
       this.fishingState = 'IDLE';
-      this.inventory.addFish(fish, weight, {
+      this.player.stopFishing?.();
+      const added = this.inventory.addFish(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
         timeOfDay: this.timeOfDay, perfect
       });
+      if (!added?.success) {
+        this.notify(added?.error === 'INVENTORY_FULL'
+          ? 'Inventory full! Sell fish (I) before catching more.'
+          : 'Could not store that catch.', 3500);
+        return;
+      }
+      // Keep GameState encyclopedia/save inventory in sync with Inventory system
+      gameState.addFish(fish, weight);
       this.achievementSystem.recordCatch(fish, weight, {
         weather: this.weatherSystem?.currentWeather || 'sunny',
         timeOfDay: this.timeOfDay, perfect
       });
-      this.player.stopFishing?.();
       const stars = perfect ? ' ⭐ PERFECT!' : '';
       this.notify(`Caught ${fish.name}! ${weight?.toFixed(1)}kg${stars}`, 3500);
     });

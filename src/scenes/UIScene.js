@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { eventBus } from '../core/EventBus.js';
 import { EVENTS, RARITY, GAME } from '../core/Constants.js';
+import { gameState } from '../core/GameState.js';
 
 const W = GAME.VIEW_WIDTH;  // 480 — UI always at viewport coords
 const H = GAME.HEIGHT;      // 270
@@ -169,24 +170,85 @@ export class UIScene extends Phaser.Scene {
   }
 
   toggleInventory() {
-    if (this.inventoryPanel?.visible) { this.inventoryPanel.setVisible(false); return; }
-    if (this.inventoryPanel) { this.inventoryPanel.setVisible(true); return; }
+    if (this.inventoryPanel?.visible) {
+      this.inventoryPanel.destroy(true);
+      this.inventoryPanel = null;
+      return;
+    }
+    this.buildInventoryPanel();
+  }
 
+  buildInventoryPanel() {
+    if (this.inventoryPanel) {
+      this.inventoryPanel.destroy(true);
+      this.inventoryPanel = null;
+    }
+    const inv = this.registry.get('inventory');
+    const fish = inv?.getAllFish?.() || [];
     const panel = this.add.container(W / 2, H / 2).setScrollFactor(0).setDepth(300);
     panel.add([
-      this.add.rectangle(0, 0, 220, 130, 0x0a0a18, 0.96).setDepth(300),
-      this.add.rectangle(0, 0, 222, 132).setStrokeStyle(2, 0x4488ff).setDepth(299),
-      this.add.text(0, -52, '📦  INVENTORY', {
+      this.add.rectangle(0, 0, 240, 160, 0x0a0a18, 0.96),
+      this.add.rectangle(0, 0, 242, 162).setStrokeStyle(2, 0x4488ff),
+      this.add.text(0, -68, '📦  INVENTORY', {
         fontSize: '11px', color: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2
-      }).setOrigin(0.5).setDepth(301),
-      this.add.text(0, -35, 'Fish you\'ve caught will appear here.', {
-        fontSize: '8px', color: '#aaaaaa'
-      }).setOrigin(0.5).setDepth(301),
-      this.add.text(0, 55, 'Press I to close', {
-        fontSize: '8px', color: '#666666'
-      }).setOrigin(0.5).setDepth(301)
+      }).setOrigin(0.5),
     ]);
+    if (fish.length === 0) {
+      panel.add(this.add.text(0, -10, 'No fish yet — cast at the shore!', {
+        fontSize: '8px', color: '#aaaaaa', align: 'center', wordWrap: { width: 200 }
+      }).setOrigin(0.5));
+    } else {
+      const lines = fish.slice(0, 8).map((item, i) => {
+        const name = item.fish?.name || 'Fish';
+        const w = item.weight != null ? `${Number(item.weight).toFixed(1)}kg` : '';
+        const val = item.fish?.value != null ? `${item.fish.value}g` : '';
+        return `${i + 1}. ${name}  ${w}  ${val}`.trim();
+      });
+      if (fish.length > 8) lines.push(`… +${fish.length - 8} more`);
+      const slots = inv?.maxSlots ?? 30;
+      panel.add(this.add.text(0, -48, `${fish.length}/${slots} slots · worth ${inv.getTotalValue?.() ?? 0}g`, {
+        fontSize: '8px', color: '#88aacc'
+      }).setOrigin(0.5));
+      panel.add(this.add.text(0, 8, lines.join('\n'), {
+        fontSize: '8px', color: '#e8e8e8', align: 'left', lineSpacing: 3
+      }).setOrigin(0.5, 0));
+      const sell = this.add.text(0, 62, '[S] Sell all', {
+        fontSize: '9px', color: '#ffdd44', backgroundColor: '#222244'
+      }).setOrigin(0.5).setPadding(4, 2).setInteractive({ useHandCursor: true });
+      sell.on('pointerdown', () => this.sellAllFish());
+      panel.add(sell);
+      this._invSellKey = this.input.keyboard.once('keydown-S', () => {
+        if (this.inventoryPanel?.visible) this.sellAllFish();
+      });
+    }
+    panel.add(this.add.text(0, 78, 'Press I to close', {
+      fontSize: '8px', color: '#666666'
+    }).setOrigin(0.5));
     this.inventoryPanel = panel.setVisible(true);
+  }
+
+  sellAllFish() {
+    const inv = this.registry.get('inventory');
+    if (!inv?.getCount?.() && !inv?.getAllFish?.()?.length) {
+      this.showMessage('Nothing to sell.', 2000);
+      return;
+    }
+    const result = inv.sellAll?.();
+    const gold = result?.gold || 0;
+    const count = result?.count || 0;
+    if (count <= 0) {
+      this.showMessage('Nothing to sell.', 2000);
+      return;
+    }
+    gameState.game.gold += gold;
+    gameState.inventory = [];
+    eventBus.emit(EVENTS.UI_GOLD_SYNC, { gold: gameState.game.gold });
+    this.showMessage(`Sold ${count} fish for ${gold}g!`, 2500);
+    if (this.inventoryPanel) {
+      this.inventoryPanel.destroy(true);
+      this.inventoryPanel = null;
+    }
+    this.buildInventoryPanel();
   }
 
   update() {}
