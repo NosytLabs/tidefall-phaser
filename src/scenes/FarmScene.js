@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player.js';
-import { eventBus } from '../core/EventBus.js';
-import { gameState } from '../core/GameState.js';
-import { EVENTS, GAME, DEPTH } from '../core/Constants.js';
+import { GAME, DEPTH } from '../core/Constants.js';
 
+/**
+ * Farm side-location. Buildings/animals use BootScene textures when present.
+ * Resets player position on wake (scene.switch does not re-run create).
+ */
 export class FarmScene extends Phaser.Scene {
   constructor() {
     super({ key: 'FarmScene' });
@@ -12,11 +14,19 @@ export class FarmScene extends Phaser.Scene {
   }
 
   create() {
+    this.events.on('wake', () => this.resetFarm());
     this.createBackground();
     this.createBuildings();
     this.player = new Player(this, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     this.createAnimals();
     this.setupInput();
+  }
+
+  resetFarm() {
+    if (this.player?.container) {
+      this.player.container.setPosition(GAME.WIDTH / 2, GAME.HEIGHT / 2);
+      this.player.stopVelocity?.();
+    }
   }
 
   createBackground() {
@@ -45,7 +55,11 @@ export class FarmScene extends Phaser.Scene {
     for (let i = 0; i < 6; i++) {
       const t = types[i % 3];
       if (this.textures.exists(t)) {
-        const a = this.add.sprite(50 + Math.random() * (GAME.WIDTH - 100), 50 + Math.random() * (GAME.HEIGHT - 100), t).setScale(1);
+        const a = this.add.sprite(
+          50 + Math.random() * (GAME.WIDTH - 100),
+          50 + Math.random() * (GAME.HEIGHT - 100),
+          t
+        ).setScale(1);
         this.animals.push(a);
       }
     }
@@ -54,12 +68,19 @@ export class FarmScene extends Phaser.Scene {
   setupInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,A,S,D');
-    this.add.text(10, GAME.HEIGHT - 20, 'WASD: Move | F / ESC: Return to shore', { fontSize: '8px', fontFamily: 'monospace' }).setDepth(DEPTH.UI + 10);
-    this.input.keyboard.on('keydown-F', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
-    this.input.keyboard.on('keydown-ESC', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
+    this.add.text(10, GAME.HEIGHT - 20, 'WASD: Move | F / ESC: Return to shore', {
+      fontSize: '8px', fontFamily: 'monospace', color: '#efe',
+    }).setDepth(DEPTH.UI + 10);
+    this.input.keyboard.on('keydown-F', () => {
+      if (this.scene.isActive()) this.scene.switch('FishingScene');
+    });
+    this.input.keyboard.on('keydown-ESC', () => {
+      if (this.scene.isActive()) this.scene.switch('FishingScene');
+    });
   }
 
-  update(time, delta) {
+  update(_time, delta) {
+    if (!this.player) return;
     const input = {
       up: this.cursors.up.isDown || this.wasd.W.isDown,
       down: this.cursors.down.isDown || this.wasd.S.isDown,
