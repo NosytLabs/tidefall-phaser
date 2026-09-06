@@ -62,10 +62,12 @@ export class AudioManager {
   }
 
   /**
-   * Load sound assets (call from scene preload)
+   * Optionally queue real audio files. No assets ship yet under public/assets/sounds
+   * or public/assets/music — playSfx falls back to WebAudio placeholders.
+   * Do not register missing paths (avoids Phaser loaderrors).
    */
   preloadSounds() {
-    const sounds = [
+    this.soundCatalog = [
       { key: 'cast', path: 'assets/sounds/cast.ogg', pool: false },
       { key: 'splash', path: 'assets/sounds/splash.ogg', pool: true },
       { key: 'bite', path: 'assets/sounds/bite.ogg', pool: false },
@@ -80,14 +82,8 @@ export class AudioManager {
       { key: 'bgm_day', path: 'assets/music/day.ogg', pool: false, loop: true },
       { key: 'bgm_night', path: 'assets/music/night.ogg', pool: false, loop: true },
     ];
-
-    sounds.forEach(sound => {
-      if (sound.loop) {
-        this.scene.load.audio(sound.key, sound.path);
-      } else {
-        this.scene.load.audio(sound.key, sound.path);
-      }
-    });
+    // Intentionally no this.scene.load.audio(...) until files exist.
+    this.usePlaceholders = true;
   }
 
   /**

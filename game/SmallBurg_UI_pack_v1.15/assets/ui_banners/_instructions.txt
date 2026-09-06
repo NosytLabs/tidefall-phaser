@@ -1,8 +1,0 @@
-Instructions
-========================
-
-Banners can be used in windows, in cards, books or wherever you want.
-
-They can tiled or used as a 9 patch.
-
-
