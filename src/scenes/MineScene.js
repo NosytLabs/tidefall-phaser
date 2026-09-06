@@ -56,7 +56,7 @@ export class MineScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,A,S,D');
     this.input.keyboard.on('keydown-SPACE', () => this.tryMine());
-    this.input.keyboard.on('keydown-M', () => this.scene.switch('FishingScene'));
+    this.input.keyboard.on('keydown-M', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
   }
 
   tryMine() {

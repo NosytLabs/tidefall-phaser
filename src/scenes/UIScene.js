@@ -50,7 +50,7 @@ export class UIScene extends Phaser.Scene {
     // Controls hint (bottom)
     this.add.rectangle(W / 2, H, W, 14, 0x000000, 0.65)
       .setOrigin(0.5, 1).setDepth(90).setScrollFactor(0);
-    this.add.text(W / 2, H - 11, 'WASD/Arrows: Move  •  SPACE: Fish  •  E: Talk  •  I: Inventory', {
+    this.add.text(W / 2, H - 11, 'WASD: Move  •  SPACE: Fish  •  E: Talk  •  I: Inv  •  V: Dive  •  N: Mine  •  G: Farm', {
       fontSize: '7px', fontFamily: 'monospace', color: '#aaaaaa'
     }).setOrigin(0.5, 0).setDepth(100).setScrollFactor(0);
 

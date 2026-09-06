@@ -129,6 +129,14 @@ export class AchievementSystem {
         const data = JSON.parse(saved);
         this.unlockedAchievements = new Set(data.unlocked || []);
         this.stats = { ...this.stats, ...data.stats };
+        // locationsVisited / fishByType must stay as Set/Map after JSON load
+        const visited = data.stats?.locationsVisited;
+        this.stats.locationsVisited = new Set(
+          Array.isArray(visited) ? visited : (visited ? Object.keys(visited) : [])
+        );
+        if (data.stats?.fishByType && !(this.stats.fishByType instanceof Map)) {
+          this.stats.fishByType = new Map(Object.entries(data.stats.fishByType));
+        }
         
         // Restore progress counters
         Object.entries(data.progress || {}).forEach(([id, value]) => {
@@ -153,7 +161,13 @@ export class AchievementSystem {
     try {
       const data = {
         unlocked: Array.from(this.unlockedAchievements),
-        stats: this.stats,
+        stats: {
+          ...this.stats,
+          locationsVisited: Array.from(this.stats.locationsVisited || []),
+          fishByType: this.stats.fishByType instanceof Map
+            ? Object.fromEntries(this.stats.fishByType)
+            : (this.stats.fishByType || {}),
+        },
         progress: Object.fromEntries(this.progress)
       };
       localStorage.setItem('tidefall_achievements', JSON.stringify(data));

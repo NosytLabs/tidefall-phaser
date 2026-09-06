@@ -70,7 +70,7 @@ export class DiveScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,A,S,D');
     this.input.keyboard.on('keydown-SPACE', () => this.tryCollectTreasure());
-    this.input.keyboard.on('keydown-Q', () => this.scene.switch('FishingScene'));
+    this.input.keyboard.on('keydown-Q', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
   }
 
   startOxygenDepletion() {
@@ -79,7 +79,7 @@ export class DiveScene extends Phaser.Scene {
       callback: () => {
         this.oxygen -= 2;
         this.updateOxygenBar();
-        if (this.oxygen <= 0) this.scene.switch('FishingScene');
+        if (this.oxygen <= 0 && this.scene.isActive()) this.scene.switch('FishingScene');
       }
     });
   }

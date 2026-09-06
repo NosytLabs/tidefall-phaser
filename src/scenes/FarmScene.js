@@ -54,8 +54,9 @@ export class FarmScene extends Phaser.Scene {
   setupInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,A,S,D');
-    this.input.keyboard.on('keydown-F', () => this.scene.switch('FishingScene'));
-    this.input.keyboard.on('keydown-ESC', () => this.scene.switch('FishingScene'));
+    this.add.text(10, GAME.HEIGHT - 20, 'WASD: Move | F / ESC: Return to shore', { fontSize: '8px', fontFamily: 'monospace' }).setDepth(DEPTH.UI + 10);
+    this.input.keyboard.on('keydown-F', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
+    this.input.keyboard.on('keydown-ESC', () => { if (this.scene.isActive()) this.scene.switch('FishingScene'); });
   }
 
   update(time, delta) {
