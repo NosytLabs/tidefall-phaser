@@ -125,7 +125,10 @@ export class DiveScene extends Phaser.Scene {
   setupInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,A,S,D');
-    this.input.keyboard.on('keydown-SPACE', () => this.tryCollectTreasure());
+    // KeyboardPlugin is shared across scenes — guard so slept Dive cannot steal SPACE/Q
+    this.input.keyboard.on('keydown-SPACE', () => {
+      if (this.scene.isActive()) this.tryCollectTreasure();
+    });
     this.input.keyboard.on('keydown-Q', () => {
       if (this.scene.isActive()) this.scene.switch('FishingScene');
     });
