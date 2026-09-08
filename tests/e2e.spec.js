@@ -94,6 +94,27 @@ test.describe('Tidefall player flows', () => {
     expect(result.fishShadowAnimations).toEqual([true, true, true]);
   });
 
+  test('casts stay in world space on the east side of the map', async ({ page }) => {
+    await page.goto('http://localhost:3010');
+    await page.waitForTimeout(1200);
+
+    const playerX = 1580;
+    await page.evaluate(x => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      scene.player.x = x;
+      scene.player.y = scene.waterBounds.top + 12;
+      scene.fishingSystem.startCasting(scene.player);
+    }, playerX);
+    await waitForFishingState(page, 'waiting');
+
+    const bobberX = await page.evaluate(() =>
+      window.__game.scene.getScene('FishingScene').fishingSystem.bobber?.x
+    );
+
+    expect(bobberX).toBeGreaterThan(playerX - 50);
+    expect(bobberX).toBeLessThan(playerX + 50);
+  });
+
   test('hooking starts a responsive reel minigame with fish-specific tuning', async ({ page }) => {
     await page.goto('http://localhost:3010');
     await page.waitForTimeout(1200);
