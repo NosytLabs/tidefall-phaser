@@ -50,4 +50,28 @@ test.describe('Tidefall player flows', () => {
     expect(during.vx).toBeGreaterThan(0);
     expect(during.x).toBeGreaterThanOrEqual(before);
   });
+
+  test('visual audit captures the core fishing flow', async ({ page }) => {
+    await page.goto('http://localhost:3010');
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1200);
+
+    await page.screenshot({ path: 'test-results/tidefall-boot.png', fullPage: true });
+
+    await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      scene.player.x = 420;
+      scene.player.y = scene.waterBounds.top + 12;
+      scene.fishingSystem.startCasting(scene.player);
+    });
+    await page.waitForTimeout(650);
+    await page.screenshot({ path: 'test-results/tidefall-cast.png', fullPage: true });
+
+    await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      scene.fishingSystem.triggerBite();
+    });
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: 'test-results/tidefall-bite.png', fullPage: true });
+  });
 });
