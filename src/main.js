@@ -10,6 +10,7 @@ import { FishingSystem } from './systems/FishingSystem.js';
 import { installTidefallPresentation } from './systems/TidefallPresentation.js';
 import { installTidefallFishingTuning } from './systems/TidefallFishingTuning.js';
 import { installTidefallFishingExperience } from './systems/TidefallFishingExperience.js';
+import { installTidefallFishingAnimationPolish } from './systems/TidefallFishingAnimationPolish.js';
 
 // Keep the production HUD as the single source of telemetry. The legacy FPS
 // text object can outlive its canvas in headless Chromium, so remove it as
@@ -23,12 +24,13 @@ FishingScene.prototype.create = function (...args) {
   }
 };
 
-// Capture gameplay logic before any presentation wrappers.
+// Capture gameplay logic before presentation wrappers are installed.
 const originalTriggerBite = FishingSystem.prototype.triggerBite;
 
 installTidefallFishingTuning(FishingSystem);
 installTidefallPresentation(FishingScene, FishingSystem);
 installTidefallFishingExperience(FishingSystem);
+installTidefallFishingAnimationPolish(FishingSystem);
 
 // Re-bind bite feedback around the true authored gameplay method.
 FishingSystem.prototype.triggerBite = function (...args) {
