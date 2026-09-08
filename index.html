@@ -3,33 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Tidefall — Pixel Art Fishing RPG</title>
-  <meta name="description" content="Tidefall is a cozy 2D pixel art fishing RPG. Explore the River, Lake, and Sea, catch 44 fish species, and build your fishing village.">
-  <meta name="theme-color" content="#1a1a2e">
+  <title>Tidefall — Cozy Pixel Fishing Game</title>
+  <meta name="description" content="Play Tidefall, a cozy browser fishing game. Explore the coast, cast, hook fish, build your collection, and chase rare catches across a living shoreline.">
+  <meta name="theme-color" content="#08111f">
   <meta name="author" content="Nosyt Labs">
-  <meta property="og:title" content="Tidefall — Pixel Art Fishing RPG">
-  <meta property="og:description" content="A cozy 2D pixel art fishing RPG with 44 fish species, a day/night cycle, and three fishing biomes.">
+  <link rel="canonical" href="https://tidefall-fishing.vercel.app/">
+  <meta property="og:title" content="Tidefall — Cozy Pixel Fishing Game">
+  <meta property="og:description" content="Cast, hook, catch and explore a living pixel-art shoreline. Play Tidefall in your browser.">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="./favicon.svg">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Tidefall — Pixel Art Fishing RPG">
-  <meta name="twitter:description" content="A cozy 2D pixel art fishing RPG with 44 fish species and three fishing biomes.">
+  <meta property="og:url" content="https://tidefall-fishing.vercel.app/">
+  <meta property="og:image" content="/favicon.svg">
+  <meta property="og:image:alt" content="Tidefall pixel fishing game">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Tidefall — Cozy Pixel Fishing Game">
+  <meta name="twitter:description" content="A cozy browser fishing game with 44 fish species, a living shoreline, and a quick hook-and-reel loop.">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"VideoGame",
+    "name":"Tidefall",
+    "description":"A cozy browser fishing game about exploring, casting, catching fish and building a collection.",
+    "genre":["Fishing","Adventure","Casual"],
+    "gamePlatform":"Web Browser",
+    "applicationCategory":"Game",
+    "operatingSystem":"Any"
+  }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; font-family: monospace; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #08111f; font-family: monospace; }
     body { display: flex; justify-content: center; align-items: center; }
-    #game-container { width: 100vw; height: 100dvh; }
-    #game-container canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
-    #loading { position: fixed; inset: 0; display: grid; place-items: center; color: #88ccff; background: #1a1a2e; font-size: 16px; text-align: center; z-index: 10; }
-    #loading .spinner { width: 30px; height: 30px; border: 3px solid #333; border-top-color: #88ccff; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+    #game-container { width: 100vw; width: 100svw; height: 100dvh; min-height: 100svh; }
+    #game-container canvas { display: block; width: 100%; height: 100%; }
+    #loading { position: fixed; inset: 0; display: grid; place-items: center; color: #b9e9ff; background: #08111f; font-size: 16px; text-align: center; z-index: 10; }
+    #loading .spinner { width: 30px; height: 30px; border: 3px solid #203448; border-top-color: #67d7ff; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { #loading .spinner { animation: none; } }
   </style>
 </head>
 <body>
-  <main id="game-container" aria-label="Tidefall game"></main>
+  <main id="game-container" aria-label="Tidefall browser fishing game"></main>
   <div id="loading" role="status" aria-live="polite"><div><div class="spinner" aria-hidden="true"></div><span>Loading Tidefall…</span></div></div>
   <script type="module" src="./src/main.js"></script>
 </body>
