@@ -7,6 +7,20 @@ import { MineScene } from './scenes/MineScene.js';
 import { FarmScene } from './scenes/FarmScene.js';
 import { GAME } from './core/Constants.js';
 
+// FishingScene still contains a legacy debug FPS text object in its create()
+// path. It is not part of the production HUD and, under headless Chromium,
+// updating that destroyed Phaser Text object can hit a null canvas context.
+// Remove the legacy object immediately after scene creation; production HUD
+// owns all telemetry now.
+const createFishingScene = FishingScene.prototype.create;
+FishingScene.prototype.create = function (...args) {
+  createFishingScene.apply(this, args);
+  if (this.fpsText) {
+    this.fpsText.destroy();
+    this.fpsText = null;
+  }
+};
+
 const config = {
   type: Phaser.WEBGL,
   parent: 'game-container',
