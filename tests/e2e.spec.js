@@ -73,5 +73,15 @@ test.describe('Tidefall player flows', () => {
     });
     await page.waitForTimeout(250);
     await page.screenshot({ path: 'test-results/tidefall-bite.png', fullPage: true });
+
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(200);
+    const minigame = await page.evaluate(() => ({
+      state: window.__game.scene.getScene('FishingScene').fishingSystem.state,
+      hasPanel: Boolean(window.__game.scene.getScene('FishingScene').fishingSystem.minigamePanel),
+    }));
+    expect(minigame.state).toBe('minigame');
+    expect(minigame.hasPanel).toBe(true);
+    await page.screenshot({ path: 'test-results/tidefall-minigame.png', fullPage: true });
   });
 });
