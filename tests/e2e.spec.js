@@ -1,64 +1,47 @@
-/**
- * @file E2E tests for Tidefall game using Playwright
- * Run with: npm run test:e2e:ci  (starts dev server automatically via Playwright webServer)
- * Or: npx playwright test tests/e2e.spec.js
- */
 import { test, expect } from '@playwright/test';
 
-test.describe('Tidefall Game Integration Tests', () => {
-  test('game loads without errors', async ({ page }) => {
+test.describe('Tidefall player flows', () => {
+  test('boots cleanly and exposes the game canvas', async ({ page }) => {
     const errors = [];
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text());
-      }
-    });
-
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('http://localhost:3010');
-    await page.waitForTimeout(3000);
-
-    // Check canvas exists
-    const canvas = page.locator('canvas');
-    await expect(canvas).toBeVisible();
-
-    // Verify no critical errors (ignore favicon/404/warnings)
-    const criticalErrors = errors.filter(e =>
-      !e.includes('favicon') &&
-      !e.includes('404') &&
-      !e.includes('warning')
-    );
-    expect(criticalErrors).toHaveLength(0);
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1500);
+    expect(errors.filter(e => !e.includes('favicon'))).toEqual([]);
   });
 
-  test('inventory toggle with I key', async ({ page }) => {
+  test('movement and inventory controls are wired', async ({ page }) => {
     await page.goto('http://localhost:3010');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1500);
+    const state = await page.evaluate(() => ({
+      hasGame: Boolean(window.__game),
+      scene: window.__game?.scene?.getScene('FishingScene')?.scene?.isActive(),
+      ui: window.__game?.scene?.getScene('UIScene')?.scene?.isActive(),
+    }));
+    expect(state.hasGame).toBe(true);
+    expect(state.scene).toBe(true);
+    expect(state.ui).toBe(true);
 
-    // Press I to open inventory
     await page.keyboard.press('I');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(150);
+    const inventoryOpen = await page.evaluate(() => Boolean(window.__game.scene.getScene('UIScene').inventoryPanel));
+    expect(inventoryOpen).toBe(true);
 
-    // Basic sanity check
-    expect(true).toBe(true);
+    await page.keyboard.press('I');
+    await page.waitForTimeout(100);
+    const inventoryClosed = await page.evaluate(() => !window.__game.scene.getScene('UIScene').inventoryPanel);
+    expect(inventoryClosed).toBe(true);
   });
 
-  test('quest system initializes', async ({ page }) => {
+  test('walk input reaches the player controller', async ({ page }) => {
     await page.goto('http://localhost:3010');
-    await page.waitForTimeout(2000);
-
-    const hasQuestSystem = await page.evaluate(() => {
-      return typeof window.questManager !== 'undefined' || true;
-    });
-
-    expect(hasQuestSystem).toBe(true);
-  });
-
-  test('day/night cycle placeholder', async ({ page }) => {
-    await page.goto('http://localhost:3010');
-    await page.waitForTimeout(1000);
-
-    const dayNightWorking = await page.evaluate(() => true);
-
-    expect(dayNightWorking).toBe(true);
+    await page.waitForTimeout(1500);
+    const before = await page.evaluate(() => window.__game.scene.getScene('FishingScene').player.x);
+    await page.keyboard.down('D');
+    await page.waitForTimeout(250);
+    await page.keyboard.up('D');
+    const after = await page.evaluate(() => window.__game.scene.getScene('FishingScene').player.x);
+    expect(after).toBeGreaterThan(before);
   });
 });
