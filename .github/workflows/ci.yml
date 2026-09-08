@@ -24,3 +24,11 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e:ci
+      - name: Upload visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tidefall-visual-audit
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
