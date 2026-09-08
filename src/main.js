@@ -24,6 +24,18 @@ FishingScene.prototype.create = function (...args) {
 // Install the visual/game-feel pass before Phaser constructs any scenes.
 installTidefallPresentation(FishingScene, FishingSystem);
 
+// The fishing minigame updates width while treating the progress bar as a
+// centered object. Normalize the presentation layer to those coordinates.
+const createMinigameUI = FishingSystem.prototype.createMinigameUI;
+FishingSystem.prototype.createMinigameUI = function (...args) {
+  createMinigameUI.apply(this, args);
+  if (this.minigameBar) {
+    this.minigameBar
+      .setPosition(this.scene.scale.width / 2, this.scene.scale.height - 48)
+      .setOrigin(0.5, 0.5);
+  }
+};
+
 const config = {
   type: Phaser.WEBGL,
   parent: 'game-container',
