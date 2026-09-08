@@ -9,6 +9,7 @@ import { GAME, COLORS, WORLD, DEPTH } from './core/Constants.js';
 import { FishingSystem } from './systems/FishingSystem.js';
 import { installTidefallPresentation } from './systems/TidefallPresentation.js';
 import { installTidefallFishingTuning } from './systems/TidefallFishingTuning.js';
+import { installTidefallFishingExperience } from './systems/TidefallFishingExperience.js';
 
 // Keep the production HUD as the single source of telemetry. The legacy FPS
 // text object can outlive its canvas in headless Chromium, so remove it as
@@ -22,18 +23,20 @@ FishingScene.prototype.create = function (...args) {
   }
 };
 
-// Capture gameplay logic before the presentation layer wraps selected methods.
+// Capture gameplay logic before any presentation wrappers.
 const originalTriggerBite = FishingSystem.prototype.triggerBite;
 
 installTidefallFishingTuning(FishingSystem);
 installTidefallPresentation(FishingScene, FishingSystem);
+installTidefallFishingExperience(FishingSystem);
 
-// Re-bind bite feedback around the true original gameplay method. This keeps
-// visual feedback separate from fishing rules and avoids recursive wrappers.
+// Re-bind bite feedback around the true authored gameplay method.
 FishingSystem.prototype.triggerBite = function (...args) {
   const result = originalTriggerBite.apply(this, args);
   if (this.bobber) {
     this.scene.tweens.killTweensOf(this.bobber);
+    const biteAnim = this.scene.anims.exists('bobber_bite_anim') ? 'bobber_bite_anim' : null;
+    if (biteAnim) this.bobber.play(biteAnim);
     this.scene.tweens.add({
       targets: this.bobber,
       y: this.bobber.y + 2,
@@ -43,15 +46,16 @@ FishingSystem.prototype.triggerBite = function (...args) {
       ease: 'Sine.easeInOut'
     });
   }
+
+  const zone = this.getFishingZone?.();
   const label = this.currentFishPersonality === 'LEGENDARY'
-    ? 'Rare bite! Press SPACE to hook.'
-    : 'Fish on! Press SPACE to hook.';
+    ? `Rare bite in ${zone?.name || 'deep water'}! Press SPACE.`
+    : `Fish on in ${zone?.name || 'the water'}! Press SPACE.`;
   this.scene.events.emit('ui:showMessage', label);
   return result;
 };
 
-// The fishing minigame updates width while treating the progress bar as a
-// centered object. Normalize the presentation layer to those coordinates.
+// Keep the visual progress bar centered after the presentation layer runs.
 const createMinigameUI = FishingSystem.prototype.createMinigameUI;
 FishingSystem.prototype.createMinigameUI = function (...args) {
   createMinigameUI.apply(this, args);
@@ -62,8 +66,8 @@ FishingSystem.prototype.createMinigameUI = function (...args) {
   }
 };
 
-// Make the shoreline layer visually complete even where the source beach
-// tiles use transparency for texture details.
+// Make the shoreline layer visually complete even where source beach tiles
+// use transparency for texture details.
 FishingScene.prototype.createSand = function createSandPolished() {
   const sandY = (WORLD.SAND_TOP + WORLD.SAND_BOTTOM) / 2;
   const sandH = WORLD.SAND_BOTTOM - WORLD.SAND_TOP;
