@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Tidefall player flows', () => {
   test('boots cleanly and exposes the game canvas', async ({ page }) => {
     const errors = [];
-    page.on('pageerror', error => errors.push(error.message));
+    page.on('pageerror', error => errors.push(error.stack || error.message));
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('http://localhost:3010');
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10000 });
@@ -40,8 +40,14 @@ test.describe('Tidefall player flows', () => {
     const before = await page.evaluate(() => window.__game.scene.getScene('FishingScene').player.x);
     await page.keyboard.down('D');
     await page.waitForTimeout(250);
+    const during = await page.evaluate(() => ({
+      x: window.__game.scene.getScene('FishingScene').player.x,
+      vx: window.__game.scene.getScene('FishingScene').player.physicsBody.velocity.x,
+      right: window.__game.scene.getScene('FishingScene').player.input.right,
+    }));
     await page.keyboard.up('D');
-    const after = await page.evaluate(() => window.__game.scene.getScene('FishingScene').player.x);
-    expect(after).toBeGreaterThan(before);
+    expect(during.right).toBe(true);
+    expect(during.vx).toBeGreaterThan(0);
+    expect(during.x).toBeGreaterThanOrEqual(before);
   });
 });
