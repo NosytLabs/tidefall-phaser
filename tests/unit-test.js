@@ -1,20 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { GAME, FISHING, TIME, RODS } from '../src/core/Constants.js';
+import gameState from '../src/core/GameState.js';
 
-// Basic unit-style check for constants and environment
-console.log('--- Tidefall Unit Health Check ---');
-console.log('Testing environment...');
+const checks = [
+  ['viewport', GAME.VIEW_WIDTH === 480 && GAME.HEIGHT === 270],
+  ['world width', GAME.WIDTH >= GAME.VIEW_WIDTH],
+  ['fishing wait range', FISHING.WAIT_MIN_TIME < FISHING.WAIT_MAX_TIME],
+  ['time phases', TIME.PHASES.length === 4],
+  ['rods', Object.keys(RODS).length >= 3],
+  ['state reset', gameState.player.energy === 100 && gameState.game.totalCaught === 0],
+];
 
-const mockConstants = {
-  GAME: { WIDTH: 480, HEIGHT: 270 },
-  VERSION: '1.0.0'
-};
-
-if (mockConstants.VERSION === '1.0.0') {
-  console.log('✅ Constants loaded successfully.');
-} else {
-  console.error('❌ Version mismatch.');
-  process.exit(1);
+for (const [name, ok] of checks) {
+  if (!ok) {
+    console.error(`FAIL: ${name}`);
+    process.exit(1);
+  }
 }
 
-console.log('✅ Unit tests PASSED.');
-process.exit(0);
+console.log(`Tidefall unit checks passed (${checks.length}).`);
