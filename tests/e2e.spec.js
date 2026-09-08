@@ -64,8 +64,7 @@ test.describe('Tidefall player flows', () => {
 
     await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
-      scene.player.x = 420;
-      scene.player.y = scene.waterBounds.top + 12;
+      scene.player.container.setPosition(420, scene.waterBounds.top + 12);
       scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
     });
@@ -101,18 +100,23 @@ test.describe('Tidefall player flows', () => {
     const playerX = 1580;
     await page.evaluate(x => {
       const scene = window.__game.scene.getScene('FishingScene');
-      scene.player.x = x;
-      scene.player.y = scene.waterBounds.top + 12;
+      scene.player.container.setPosition(x, scene.waterBounds.top + 12);
+      scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
     }, playerX);
     await waitForFishingState(page, 'waiting');
 
-    const bobberX = await page.evaluate(() =>
-      window.__game.scene.getScene('FishingScene').fishingSystem.bobber?.x
-    );
+    const result = await page.evaluate(() => {
+      const fs = window.__game.scene.getScene('FishingScene').fishingSystem;
+      return {
+        bobberX: fs.bobber?.x,
+        zone: fs.currentFishingZone?.name,
+      };
+    });
 
-    expect(bobberX).toBeGreaterThan(playerX - 50);
-    expect(bobberX).toBeLessThan(playerX + 50);
+    expect(result.bobberX).toBeGreaterThan(playerX - 50);
+    expect(result.bobberX).toBeLessThan(playerX + 50);
+    expect(result.zone).toBe('Blackwater');
   });
 
   test('hooking starts a responsive reel minigame with fish-specific tuning', async ({ page }) => {
@@ -121,8 +125,7 @@ test.describe('Tidefall player flows', () => {
 
     await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
-      scene.player.x = 1580;
-      scene.player.y = scene.waterBounds.top + 55;
+      scene.player.container.setPosition(1580, scene.waterBounds.top + 55);
       scene.fishingSystem.startCasting(scene.player);
     });
     await waitForFishingState(page, 'waiting');
@@ -140,6 +143,7 @@ test.describe('Tidefall player flows', () => {
       const fish = fs.currentFish;
       return {
         state: fs.state,
+        zone: fs.currentFishingZone?.name,
         fish: fish?.name,
         size: fish?.size,
         target: fs.minigameTarget?.width,
@@ -149,6 +153,7 @@ test.describe('Tidefall player flows', () => {
     });
 
     expect(result.state).toBe('minigame');
+    expect(result.zone).toBe('Blackwater');
     expect(result.fish).toBeTruthy();
     expect(['small', 'medium', 'big']).toContain(result.size);
     expect(result.target).toBeGreaterThan(0);
@@ -165,8 +170,7 @@ test.describe('Tidefall player flows', () => {
 
     await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
-      scene.player.x = 420;
-      scene.player.y = scene.waterBounds.top + 12;
+      scene.player.container.setPosition(420, scene.waterBounds.top + 12);
       scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
     });
