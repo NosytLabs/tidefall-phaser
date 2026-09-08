@@ -8,6 +8,7 @@ import { FarmScene } from './scenes/FarmScene.js';
 import { GAME, COLORS, WORLD, DEPTH } from './core/Constants.js';
 import { FishingSystem } from './systems/FishingSystem.js';
 import { installTidefallPresentation } from './systems/TidefallPresentation.js';
+import { installTidefallFishingTuning } from './systems/TidefallFishingTuning.js';
 
 // Keep the production HUD as the single source of telemetry. The legacy FPS
 // text object can outlive its canvas in headless Chromium, so remove it as
@@ -24,42 +25,11 @@ FishingScene.prototype.create = function (...args) {
 // Capture gameplay logic before the presentation layer wraps selected methods.
 const originalTriggerBite = FishingSystem.prototype.triggerBite;
 
-// Install the visual/game-feel pass before Phaser constructs any scenes.
+installTidefallFishingTuning(FishingSystem);
 installTidefallPresentation(FishingScene, FishingSystem);
 
-// Sand tiles contain transparent detail pixels, so always lay down a solid
-// shoreline base first. Add a subtle worn path to connect the village edge to
-// the water rather than leaving an empty strip between gameplay spaces.
-FishingScene.prototype.createSand = function createSandPolished() {
-  const sandY = (WORLD.SAND_TOP + WORLD.SAND_BOTTOM) / 2;
-  const sandH = WORLD.SAND_BOTTOM - WORLD.SAND_TOP;
-
-  this.add.rectangle(
-    GAME.WIDTH / 2,
-    sandY,
-    GAME.WIDTH,
-    sandH,
-    COLORS.SAND
-  ).setOrigin(0.5).setDepth(DEPTH.GROUND);
-
-  if (this.textures.exists('beach_tileset')) {
-    this.add.tileSprite(GAME.WIDTH / 2, sandY, GAME.WIDTH, sandH, 'beach_tileset')
-      .setOrigin(0.5)
-      .setDepth(DEPTH.GROUND + 0.1)
-      .setAlpha(0.68);
-  }
-
-  const path = this.add.graphics().setDepth(DEPTH.DECORATION);
-  path.fillStyle(0xc9ab62, 0.42);
-  path.fillRect(720, WORLD.SAND_TOP + 8, 520, 7);
-  path.fillStyle(0xa9894e, 0.3);
-  for (let x = 730; x < 1230; x += 24) {
-    path.fillRect(x, WORLD.SAND_TOP + 10 + (x % 8) / 8, 8, 1);
-  }
-};
-
-// Re-bind the bite wrapper around the true original method. This keeps the
-// presentation pass from ever recursively calling itself.
+// Re-bind bite feedback around the true original gameplay method. This keeps
+// visual feedback separate from fishing rules and avoids recursive wrappers.
 FishingSystem.prototype.triggerBite = function (...args) {
   const result = originalTriggerBite.apply(this, args);
   if (this.bobber) {
@@ -89,6 +59,36 @@ FishingSystem.prototype.createMinigameUI = function (...args) {
     this.minigameBar
       .setPosition(this.scene.scale.width / 2, this.scene.scale.height - 48)
       .setOrigin(0.5, 0.5);
+  }
+};
+
+// Make the shoreline layer visually complete even where the source beach
+// tiles use transparency for texture details.
+FishingScene.prototype.createSand = function createSandPolished() {
+  const sandY = (WORLD.SAND_TOP + WORLD.SAND_BOTTOM) / 2;
+  const sandH = WORLD.SAND_BOTTOM - WORLD.SAND_TOP;
+
+  this.add.rectangle(
+    GAME.WIDTH / 2,
+    sandY,
+    GAME.WIDTH,
+    sandH,
+    COLORS.SAND
+  ).setOrigin(0.5).setDepth(DEPTH.GROUND);
+
+  if (this.textures.exists('beach_tileset')) {
+    this.add.tileSprite(GAME.WIDTH / 2, sandY, GAME.WIDTH, sandH, 'beach_tileset')
+      .setOrigin(0.5)
+      .setDepth(DEPTH.GROUND + 0.1)
+      .setAlpha(0.68);
+  }
+
+  const path = this.add.graphics().setDepth(DEPTH.DECORATION);
+  path.fillStyle(0xc9ab62, 0.42);
+  path.fillRect(720, WORLD.SAND_TOP + 8, 520, 7);
+  path.fillStyle(0xa9894e, 0.3);
+  for (let x = 730; x < 1230; x += 24) {
+    path.fillRect(x, WORLD.SAND_TOP + 10 + (x % 8) / 8, 8, 1);
   }
 };
 
