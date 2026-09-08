@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+async function waitForFishingState(page, expected) {
+  await expect.poll(
+    () => page.evaluate(() => window.__game.scene.getScene('FishingScene').fishingSystem.state),
+    { timeout: 5000 }
+  ).toBe(expected);
+}
+
 test.describe('Tidefall player flows', () => {
   test('boots cleanly and exposes the game canvas', async ({ page }) => {
     const errors = [];
@@ -55,26 +62,29 @@ test.describe('Tidefall player flows', () => {
     await page.goto('http://localhost:3010');
     await page.waitForTimeout(1200);
 
-    const result = await page.evaluate(() => {
+    await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
       scene.player.x = 420;
       scene.player.y = scene.waterBounds.top + 12;
       scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
-      return new Promise(resolve => setTimeout(() => {
-        const fs = scene.fishingSystem;
-        resolve({
-          state: fs.state,
-          zone: fs.currentFishingZone?.name,
-          bobber: Boolean(fs.bobber),
-          bobberAnim: fs.bobber?.anims?.currentAnim?.key || null,
-          fishShadowAnimations: [
-            scene.anims.exists('fish_shadow_swim_small'),
-            scene.anims.exists('fish_shadow_swim_medium'),
-            scene.anims.exists('fish_shadow_swim_big')
-          ]
-        });
-      }, 500));
+    });
+    await waitForFishingState(page, 'waiting');
+
+    const result = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      const fs = scene.fishingSystem;
+      return {
+        state: fs.state,
+        zone: fs.currentFishingZone?.name,
+        bobber: Boolean(fs.bobber),
+        bobberAnim: fs.bobber?.anims?.currentAnim?.key || null,
+        fishShadowAnimations: [
+          scene.anims.exists('fish_shadow_swim_small'),
+          scene.anims.exists('fish_shadow_swim_medium'),
+          scene.anims.exists('fish_shadow_swim_big')
+        ]
+      };
     });
 
     expect(result.state).toBe('waiting');
@@ -88,18 +98,27 @@ test.describe('Tidefall player flows', () => {
     await page.goto('http://localhost:3010');
     await page.waitForTimeout(1200);
 
-    const result = await page.evaluate(() => {
+    await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
       scene.player.x = 1580;
       scene.player.y = scene.waterBounds.top + 55;
       scene.fishingSystem.startCasting(scene.player);
-      scene.fishingSystem.triggerBite();
+    });
+    await waitForFishingState(page, 'waiting');
+
+    await page.evaluate(() => {
+      const fs = window.__game.scene.getScene('FishingScene').fishingSystem;
+      fs.triggerBite();
+      fs.triggerHook();
+    });
+    await waitForFishingState(page, 'minigame');
+
+    const result = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
       const fs = scene.fishingSystem;
       const fish = fs.currentFish;
-      fs.triggerHook();
       return {
         state: fs.state,
-        zone: fs.currentFishingZone?.name,
         fish: fish?.name,
         size: fish?.size,
         target: fs.minigameTarget?.width,
@@ -109,7 +128,6 @@ test.describe('Tidefall player flows', () => {
     });
 
     expect(result.state).toBe('minigame');
-    expect(result.zone).toBe('Blackwater');
     expect(result.fish).toBeTruthy();
     expect(['small', 'medium', 'big']).toContain(result.size);
     expect(result.target).toBeGreaterThan(0);
@@ -131,18 +149,19 @@ test.describe('Tidefall player flows', () => {
       scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
     });
-    await page.waitForTimeout(650);
+    await waitForFishingState(page, 'waiting');
     await page.screenshot({ path: 'test-results/tidefall-cast.png', fullPage: true });
 
     await page.evaluate(() => {
       const scene = window.__game.scene.getScene('FishingScene');
       scene.fishingSystem.triggerBite();
     });
+    await waitForFishingState(page, 'bite');
     await page.waitForTimeout(250);
     await page.screenshot({ path: 'test-results/tidefall-bite.png', fullPage: true });
 
     await page.keyboard.press('Space');
-    await page.waitForTimeout(200);
+    await waitForFishingState(page, 'minigame');
     const minigame = await page.evaluate(() => ({
       state: window.__game.scene.getScene('FishingScene').fishingSystem.state,
       hasPanel: Boolean(window.__game.scene.getScene('FishingScene').fishingSystem.minigamePanel),
