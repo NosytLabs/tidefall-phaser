@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Vite serves the development build at the URL shown in the terminal (normally `http://localhost:5173`).
 
 ## Build
 
@@ -48,11 +48,21 @@ npm run build
 
 Output goes to `/dist`.
 
+## Tests
+
+```bash
+npm test
+npm run test:e2e:ci
+```
+
+Run `npm run test:all` for the complete local test suite.
+
 ## Tech Stack
 
 - [Phaser 4](https://phaser.io/) — game framework
 - JavaScript (ES6+)
 - Vite (dev server + bundler)
+- Playwright — browser end-to-end tests
 
 ## Contributing
 
@@ -61,4 +71,3 @@ Issues and PRs welcome. Check open issues for ideas.
 ---
 
 Built by [NosytLabs](https://nosytlabs.com) · NOSYT LLC
-
