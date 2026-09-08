@@ -21,8 +21,33 @@ FishingScene.prototype.create = function (...args) {
   }
 };
 
+// Capture gameplay logic before the presentation layer wraps selected methods.
+const originalTriggerBite = FishingSystem.prototype.triggerBite;
+
 // Install the visual/game-feel pass before Phaser constructs any scenes.
 installTidefallPresentation(FishingScene, FishingSystem);
+
+// Re-bind the bite wrapper around the true original method. This keeps the
+// presentation pass from ever recursively calling itself.
+FishingSystem.prototype.triggerBite = function (...args) {
+  const result = originalTriggerBite.apply(this, args);
+  if (this.bobber) {
+    this.scene.tweens.killTweensOf(this.bobber);
+    this.scene.tweens.add({
+      targets: this.bobber,
+      y: this.bobber.y + 2,
+      duration: 220,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+  }
+  const label = this.currentFishPersonality === 'LEGENDARY'
+    ? 'Rare bite! Press SPACE to hook.'
+    : 'Fish on! Press SPACE to hook.';
+  this.scene.events.emit('ui:showMessage', label);
+  return result;
+};
 
 // The fishing minigame updates width while treating the progress bar as a
 // centered object. Normalize the presentation layer to those coordinates.
