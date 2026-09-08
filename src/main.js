@@ -6,12 +6,12 @@ import { DiveScene } from './scenes/DiveScene.js';
 import { MineScene } from './scenes/MineScene.js';
 import { FarmScene } from './scenes/FarmScene.js';
 import { GAME } from './core/Constants.js';
+import { FishingSystem } from './systems/FishingSystem.js';
+import { installTidefallPresentation } from './systems/TidefallPresentation.js';
 
-// FishingScene still contains a legacy debug FPS text object in its create()
-// path. It is not part of the production HUD and, under headless Chromium,
-// updating that destroyed Phaser Text object can hit a null canvas context.
-// Remove the legacy object immediately after scene creation; production HUD
-// owns all telemetry now.
+// Keep the production HUD as the single source of telemetry. The legacy FPS
+// text object can outlive its canvas in headless Chromium, so remove it as
+// soon as the FishingScene is created.
 const createFishingScene = FishingScene.prototype.create;
 FishingScene.prototype.create = function (...args) {
   createFishingScene.apply(this, args);
@@ -20,6 +20,9 @@ FishingScene.prototype.create = function (...args) {
     this.fpsText = null;
   }
 };
+
+// Install the visual/game-feel pass before Phaser constructs any scenes.
+installTidefallPresentation(FishingScene, FishingSystem);
 
 const config = {
   type: Phaser.WEBGL,
