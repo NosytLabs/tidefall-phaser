@@ -51,7 +51,73 @@ test.describe('Tidefall player flows', () => {
     expect(during.x).toBeGreaterThanOrEqual(before);
   });
 
-  test('visual audit captures the core fishing flow', async ({ page }) => {
+  test('fishing uses the cast zone and authored bobber animation', async ({ page }) => {
+    await page.goto('http://localhost:3010');
+    await page.waitForTimeout(1200);
+
+    const result = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      scene.player.x = 420;
+      scene.player.y = scene.waterBounds.top + 12;
+      scene.player.facing = 'right';
+      scene.fishingSystem.startCasting(scene.player);
+      return new Promise(resolve => setTimeout(() => {
+        const fs = scene.fishingSystem;
+        resolve({
+          state: fs.state,
+          zone: fs.currentFishingZone?.name,
+          bobber: Boolean(fs.bobber),
+          bobberAnim: fs.bobber?.anims?.currentAnim?.key || null,
+          fishShadowAnimations: [
+            scene.anims.exists('fish_shadow_swim_small'),
+            scene.anims.exists('fish_shadow_swim_medium'),
+            scene.anims.exists('fish_shadow_swim_big')
+          ]
+        });
+      }, 500));
+    });
+
+    expect(result.state).toBe('waiting');
+    expect(result.zone).toBe('Reed Run');
+    expect(result.bobber).toBe(true);
+    expect(['bobber_float_green', 'bobber_float_red', 'bobber_float_yellow']).toContain(result.bobberAnim);
+    expect(result.fishShadowAnimations).toEqual([true, true, true]);
+  });
+
+  test('hooking starts a responsive reel minigame with fish-specific tuning', async ({ page }) => {
+    await page.goto('http://localhost:3010');
+    await page.waitForTimeout(1200);
+
+    const result = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('FishingScene');
+      scene.player.x = 1580;
+      scene.player.y = scene.waterBounds.top + 55;
+      scene.fishingSystem.startCasting(scene.player);
+      scene.fishingSystem.triggerBite();
+      const fs = scene.fishingSystem;
+      const fish = fs.currentFish;
+      fs.triggerHook();
+      return {
+        state: fs.state,
+        zone: fs.currentFishingZone?.name,
+        fish: fish?.name,
+        size: fish?.size,
+        target: fs.minigameTarget?.width,
+        pointer: Boolean(fs.minigamePointer),
+        streak: fs.minigameHitStreak
+      };
+    });
+
+    expect(result.state).toBe('minigame');
+    expect(result.zone).toBe('Blackwater');
+    expect(result.fish).toBeTruthy();
+    expect(['small', 'medium', 'big']).toContain(result.size);
+    expect(result.target).toBeGreaterThan(0);
+    expect(result.pointer).toBe(true);
+    expect(result.streak).toBe(0);
+  });
+
+  test('visual audit captures boot, cast, bite, and reel screens', async ({ page }) => {
     await page.goto('http://localhost:3010');
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(1200);
@@ -62,6 +128,7 @@ test.describe('Tidefall player flows', () => {
       const scene = window.__game.scene.getScene('FishingScene');
       scene.player.x = 420;
       scene.player.y = scene.waterBounds.top + 12;
+      scene.player.facing = 'right';
       scene.fishingSystem.startCasting(scene.player);
     });
     await page.waitForTimeout(650);
