@@ -5,8 +5,8 @@
 
 // Display — viewport stays 480x270 but the WORLD is 1920px wide
 export const GAME = {
-  WIDTH: 1920,      // scrollable world width
-  VIEW_WIDTH: 480,  // visible viewport width (Phaser canvas)
+  WIDTH: 1920,
+  VIEW_WIDTH: 480,
   HEIGHT: 270,
   BACKGROUND_COLOR: '#1a1a2e',
   PIXEL_ART: true,
@@ -58,10 +58,10 @@ export const FISHING = {
   MINIGAME_SUCCESS: 0.18,
   MINIGAME_FAIL: 0.08,
   PERSONALITIES: {
-    TIMID:      { biteDuration: 3500, difficultyMod: 0.8,  label: 'Timid' },
-    NORMAL:     { biteDuration: 5000, difficultyMod: 1.0,  label: 'Normal' },
-    AGGRESSIVE: { biteDuration: 7000, difficultyMod: 1.4,  label: 'Aggressive' },
-    LEGENDARY:  { biteDuration: 8000, difficultyMod: 1.8,  label: 'Legendary' }
+    TIMID:      { biteDuration: 3500, difficultyMod: 0.8, label: 'Timid' },
+    NORMAL:     { biteDuration: 5000, difficultyMod: 1.0, label: 'Normal' },
+    AGGRESSIVE: { biteDuration: 7000, difficultyMod: 1.4, label: 'Aggressive' },
+    LEGENDARY:  { biteDuration: 8000, difficultyMod: 1.8, label: 'Legendary' }
   }
 };
 
@@ -97,24 +97,24 @@ export const RARITY_WEIGHTS = {
 };
 
 export const COLORS = {
-  SKY_DAY:    0x87ceeb,
-  SKY_DAWN:   0xffaa77,
-  SKY_DUSK:   0xff6644,
-  SKY_NIGHT:  0x1a1a3a,
-  GRASS:      0x5a9a3c,
+  SKY_DAY: 0x87ceeb,
+  SKY_DAWN: 0xffaa77,
+  SKY_DUSK: 0xff6644,
+  SKY_NIGHT: 0x1a1a3a,
+  GRASS: 0x5a9a3c,
   GRASS_DARK: 0x3a6a20,
-  SAND:       0xe0c870,
-  SAND_WET:   0xc8b060,
-  WATER:      0x3a86c8,
+  SAND: 0xe0c870,
+  SAND_WET: 0xc8b060,
+  WATER: 0x3a86c8,
   WATER_DEEP: 0x1e5a99,
   WATER_FOAM: 0xffffff,
-  UI_BG:      0x1a1a1a,
-  UI_BORDER:  0x888888,
+  UI_BG: 0x1a1a1a,
+  UI_BORDER: 0x888888,
   ENERGY_HIGH: 0x44cc44,
-  ENERGY_MED:  0xcccc44,
-  ENERGY_LOW:  0xcc4444,
-  TEXT:       '#ffffff',
-  TEXT_GOLD:  '#ffdd44'
+  ENERGY_MED: 0xcccc44,
+  ENERGY_LOW: 0xcc4444,
+  TEXT: '#ffffff',
+  TEXT_GOLD: '#ffdd44'
 };
 
 export const DEPTH = {
@@ -137,21 +137,20 @@ export const DEPTH = {
   UI_OVERLAY: 110
 };
 
-// Scales tuned for 270px-tall world with 1920px width
 export const SCALE = {
-  PLAYER:    1.0,   // 64px character, fits 85px grass zone
-  NPC:       1.0,
-  BOAT:      0.65,
+  PLAYER: 1.0,
+  NPC: 1.0,
+  BOAT: 0.65,
   TREE_PALM: 0.75,
   TREE_PINE: 0.65,
-  TREE_OAK:  0.8,
-  BUILDING:  0.38,  // 128px × 0.38 ≈ 49px — fits inside 60px grass zone
-  ANIMAL:    0.9,
-  CLOUD:     0.5,
-  BIRD:      0.4,
-  BOBBER:    0.6,
+  TREE_OAK: 0.8,
+  BUILDING: 0.38,
+  ANIMAL: 0.9,
+  CLOUD: 0.5,
+  BIRD: 0.4,
+  BOBBER: 0.6,
   FISH_SHADOW: 0.55,
-  PARTICLE:  1.0
+  PARTICLE: 1.0
 };
 
 export const KEYS = {
@@ -183,27 +182,27 @@ export const EVENTS = {
 };
 
 export const ASSETS = {
-  SKIN_TONES:   ['light', 'brown', 'dark'],
-  HAIR_COLORS:  ['black', 'blonde', 'blue', 'brown_dark', 'brown_light', 'green', 'pink', 'purple', 'red', 'white'],
+  SKIN_TONES: ['light', 'brown', 'dark'],
+  HAIR_COLORS: ['black', 'blonde', 'blue', 'brown_dark', 'brown_light', 'green', 'pink', 'purple', 'red', 'white'],
   SHIRT_COLORS: ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'],
   PANTS_COLORS: ['black', 'blue_dark', 'blue_light', 'brown', 'green_dark', 'green_light', 'orange', 'pink', 'red', 'white', 'yellow'],
-  HAIR_STYLES:  ['short_hair', 'long_hair', 'pony_tail', 'spikey', 'big_bun', 'small_hair'],
+  HAIR_STYLES: ['short_hair', 'long_hair', 'pony_tail', 'spikey', 'big_bun', 'small_hair'],
   CRITICAL_FISH: ['bass', 'herring', 'cod', 'catfish'],
   BOBBER_COLORS: ['green', 'red', 'yellow'],
-  SHADOW_SIZES:  ['small', 'medium', 'big'],
-  BOAT_TYPES:    ['boat_blue', 'boat_yellow', 'boat_small'],
-  TREE_TYPES:    ['palm_tree', 'trees_pine_growth', 'apple_tree', 'peach_tree'],
-  ANIMAL_TYPES:  ['chicken', 'cow', 'pig', 'chick', 'piglet'],
+  SHADOW_SIZES: ['small', 'medium', 'big'],
+  BOAT_TYPES: ['boat_blue', 'boat_yellow', 'boat_small'],
+  TREE_TYPES: ['palm_tree', 'trees_pine_growth', 'apple_tree', 'peach_tree'],
+  ANIMAL_TYPES: ['chicken', 'cow', 'pig', 'chick', 'piglet'],
   BUILDING_TYPES: ['barn', 'greenhouse', 'fish_market', 'grain_silo', 'chicken_coop']
 };
 
 // NPCs spread across the 1920px world — authoritative source (removed from NPC.js)
 export const NPCS = [
-  { id: 'tom',   name: 'Farmer Tom',     x: 200,  y: 140, role: 'farmer'    },
-  { id: 'joe',   name: 'Fisherman Joe',  x: 480,  y: 160, role: 'fisherman' },
-  { id: 'eliza', name: 'Mayor Eliza',    x: 800,  y: 135, role: 'mayor'     },
-  { id: 'bella', name: 'Merchant Bella', x: 1100, y: 135, role: 'merchant'  },
-  { id: 'zara',  name: 'Angler Zara',    x: 1550, y: 160, role: 'angler'    }
+  { id: 'tom', name: 'Farmer Tom', x: 200, y: 140, role: 'farmer' },
+  { id: 'joe', name: 'Fisherman Joe', x: 480, y: 160, role: 'fisherman' },
+  { id: 'eliza', name: 'Mayor Eliza', x: 800, y: 135, role: 'mayor' },
+  { id: 'bella', name: 'Merchant Bella', x: 1100, y: 135, role: 'merchant' },
+  { id: 'zara', name: 'Angler Zara', x: 1550, y: 160, role: 'angler' }
 ];
 
 export const CAMERA = {
@@ -219,40 +218,41 @@ export const PERF = {
 };
 
 export const BAIT = {
-  WORM:   { id: 'worm',   name: 'Worm',        bonus: 0.10, cost: 5,   attract: ['common','uncommon'] },
-  GRUB:   { id: 'grub',   name: 'Grub',        bonus: 0.15, cost: 10,  attract: ['common','uncommon','rare'] },
-  MINNOW: { id: 'minnow', name: 'Minnow',      bonus: 0.20, cost: 25,  attract: ['uncommon','rare'] },
-  SHRIMP: { id: 'shrimp', name: 'Shrimp',      bonus: 0.25, cost: 50,  attract: ['rare','epic'] },
+  WORM: { id: 'worm', name: 'Worm', bonus: 0.10, cost: 5, attract: ['common','uncommon'] },
+  GRUB: { id: 'grub', name: 'Grub', bonus: 0.15, cost: 10, attract: ['common','uncommon','rare'] },
+  MINNOW: { id: 'minnow', name: 'Minnow', bonus: 0.20, cost: 25, attract: ['uncommon','rare'] },
+  SHRIMP: { id: 'shrimp', name: 'Shrimp', bonus: 0.25, cost: 50, attract: ['rare','epic'] },
   GOLDEN: { id: 'golden', name: 'Golden Bait', bonus: 0.35, cost: 100, attract: ['epic','legendary'] }
 };
 
 export const RODS = {
-  BASIC:      { id: 'basic',      name: 'Basic Rod',   power: 1.0, accuracy: 1.0 },
-  FIBERGLASS: { id: 'fiberglass', name: 'Fiberglass',  power: 1.2, accuracy: 1.1 },
-  CARBON:     { id: 'carbon',     name: 'Carbon Rod',  power: 1.4, accuracy: 1.2 }
+  BASIC: { id: 'basic', name: 'Basic Rod', power: 1.0, accuracy: 1.0 },
+  FIBERGLASS: { id: 'fiberglass', name: 'Fiberglass', power: 1.2, accuracy: 1.1 },
+  CARBON: { id: 'carbon', name: 'Carbon Rod', power: 1.4, accuracy: 1.2 }
 };
 
 export const WEATHER = {
   TYPES: ['sunny', 'cloudy', 'rainy', 'stormy'],
   EFFECTS: {
-    sunny:  { castDistanceMod: 1.0 },
+    sunny: { castDistanceMod: 1.0 },
     cloudy: { castDistanceMod: 0.9 },
-    rainy:  { castDistanceMod: 0.8 },
+    rainy: { castDistanceMod: 0.8 },
     stormy: { castDistanceMod: 0.6 }
   },
   FISH_MODIFIER: {
-    sunny:  { common: 1.0, uncommon: 0.9, rare: 0.8,  epic: 0.7, legendary: 0.4 },
-    cloudy: { common: 1.0, uncommon: 1.0, rare: 1.0,  epic: 0.8, legendary: 0.6 },
-    rainy:  { common: 0.9, uncommon: 1.0, rare: 1.2,  epic: 1.1, legendary: 0.8 },
-    stormy: { common: 0.7, uncommon: 0.9, rare: 1.0,  epic: 1.3, legendary: 1.2 }
+    sunny: { common: 1.0, uncommon: 0.9, rare: 0.8, epic: 0.7, legendary: 0.4 },
+    cloudy: { common: 1.0, uncommon: 1.0, rare: 1.0, epic: 0.8, legendary: 0.6 },
+    rainy: { common: 0.9, uncommon: 1.0, rare: 1.2, epic: 1.1, legendary: 0.8 },
+    stormy: { common: 0.7, uncommon: 0.9, rare: 1.0, epic: 1.3, legendary: 1.2 }
   },
   MODIFIERS: {
-    sunny:  { common: 1.0, rare: 0.8, legendary: 0.4 },
+    sunny: { common: 1.0, rare: 0.8, legendary: 0.4 },
     cloudy: { common: 1.0, rare: 1.0, legendary: 0.6 },
-    rainy:  { common: 0.9, rare: 1.2, legendary: 0.8 },
+    rainy: { common: 0.9, rare: 1.2, legendary: 0.8 },
     stormy: { common: 0.7, rare: 1.0, legendary: 1.2 }
   }
 };
 
 export const STORAGE = { INVENTORY: 30, BARN: 100, WAREHOUSE: 500 };
-export const DEBUG   = { SHOW_FPS: true, SHOW_HITBOXES: false, INFINITE_ENERGY: false };
+// Debug instrumentation is opt-in so production builds do not display developer telemetry.
+export const DEBUG = { SHOW_FPS: false, SHOW_HITBOXES: false, INFINITE_ENERGY: false };
