@@ -38,14 +38,14 @@ test.describe('Tidefall player flows', () => {
     await page.goto('http://localhost:3010');
     await page.waitForTimeout(1500);
     const before = await page.evaluate(() => window.__game.scene.getScene('FishingScene').player.x);
-    await page.keyboard.down('D');
+    await page.keyboard.down('d');
     await page.waitForTimeout(250);
     const during = await page.evaluate(() => ({
       x: window.__game.scene.getScene('FishingScene').player.x,
       vx: window.__game.scene.getScene('FishingScene').player.physicsBody.velocity.x,
       right: window.__game.scene.getScene('FishingScene').player.input.right,
     }));
-    await page.keyboard.up('D');
+    await page.keyboard.up('d');
     expect(during.right).toBe(true);
     expect(during.vx).toBeGreaterThan(0);
     expect(during.x).toBeGreaterThanOrEqual(before);
