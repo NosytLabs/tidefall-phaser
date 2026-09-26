@@ -31,3 +31,14 @@ AUDIT_REPORT.md
 tidefall-debug.png
 *.lock
 
+
+# Unity editor scratch — regenerated on every open, never source.
+Logs/
+Library/
+Temp/
+Obj/
+obj/
+UserSettings/
+Builds/
+*.csproj
+*.sln
